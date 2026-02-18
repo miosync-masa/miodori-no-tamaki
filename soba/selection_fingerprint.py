@@ -1,466 +1,663 @@
+#!/usr/bin/env python3
 """
-Figure 10: SAI Distribution — Natural Selection Fingerprint
-============================================================
+generate_si_figures.py
+======================
+Supplementary Information figure & table generation for:
+"A sensing-ready equation of state for photoinhibition"
 
-The definitive figure proving SAI left-skewness is a signature 
-of asymmetric selection pressure on the SCC repair gate.
+Generates:
+  - Fig_S1_alpha_beta_scatter.png   : Full α–β parameter landscape
+  - Fig_S2_FZ_artifact_tests.png    : Forbidden zone 6-panel artifact tests
+  - Fig_S3_SAI_recovery.png         : In silico SAI recovery simulation
+  - Table_S1_extended_stats.csv     : Extended EOS statistics
 
-Key claim: skewness CI does NOT straddle zero.
+Requires:
+  - piModels.csv (from Zenodo DOI: 10.5281/zenodo.16748102)
 
-Authors: M. Iizumi & T. Iizumi (Miosync, Inc.)
+Author: Masamichi Iizumi / Miosync, Inc.
+License: MIT
 """
 
 import numpy as np
 import pandas as pd
-import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from scipy import stats
-from scipy.ndimage import gaussian_filter1d
+import matplotlib.gridspec as gridspec
+from scipy.optimize import curve_fit
+from scipy.stats import poisson
 import warnings
 warnings.filterwarnings('ignore')
 
-# ============================================================
-# LOAD DATA
-# ============================================================
-df_all = pd.read_csv('amirian_params.csv')
-df = df_all[df_all['Model_piCurve_pkg'] == 'Ph10'].copy()
-df = df[df['Convrg'] == 0].copy()
-
-df['log_alpha'] = np.log10(df['alpha'])
-df['log_beta'] = np.log10(df['beta'])
-
-mask = np.isfinite(df['log_alpha']) & np.isfinite(df['log_beta'])
-df = df[mask].copy()
-
-# Compute SAI
-slope, intercept, r_val, _, _ = stats.linregress(df['log_alpha'], df['log_beta'])
-df['SAI'] = df['log_beta'] - (slope * df['log_alpha'] + intercept)
-
-SAI = df['SAI'].values
-N = len(SAI)
-print(f"N = {N} curves")
-print(f"SAI: mean = {SAI.mean():.4f}, std = {SAI.std():.4f}")
-print(f"Observed skewness = {stats.skew(SAI):.4f}")
-print(f"Observed kurtosis = {stats.kurtosis(SAI):.4f}")
-
-# ============================================================
-# BOOTSTRAP: SKEWNESS AND KURTOSIS CI
-# ============================================================
-np.random.seed(42)
-n_boot = 10000
-
-boot_skew = np.zeros(n_boot)
-boot_kurt = np.zeros(n_boot)
-boot_mean = np.zeros(n_boot)
-boot_std = np.zeros(n_boot)
-
-# Also bootstrap: left tail weight vs right tail weight
-boot_left_mass = np.zeros(n_boot)   # fraction below -2σ
-boot_right_mass = np.zeros(n_boot)  # fraction above +2σ
-boot_left_extreme = np.zeros(n_boot)  # 1st percentile
-boot_right_extreme = np.zeros(n_boot)  # 99th percentile
-
-for i in range(n_boot):
-    sample = np.random.choice(SAI, size=N, replace=True)
-    boot_skew[i] = stats.skew(sample)
-    boot_kurt[i] = stats.kurtosis(sample)
-    boot_mean[i] = sample.mean()
-    boot_std[i] = sample.std()
-    s = sample.std()
-    boot_left_mass[i] = np.mean(sample < -2*s)
-    boot_right_mass[i] = np.mean(sample > 2*s)
-    boot_left_extreme[i] = np.percentile(sample, 1)
-    boot_right_extreme[i] = np.percentile(sample, 99)
-
-# CIs
-def ci(arr, level=0.95):
-    lo = np.percentile(arr, (1-level)/2 * 100)
-    hi = np.percentile(arr, (1+level)/2 * 100)
-    return lo, hi
-
-skew_ci95 = ci(boot_skew, 0.95)
-skew_ci99 = ci(boot_skew, 0.99)
-kurt_ci95 = ci(boot_kurt, 0.95)
-left_mass_ci95 = ci(boot_left_mass, 0.95)
-right_mass_ci95 = ci(boot_right_mass, 0.95)
-left_ext_ci95 = ci(boot_left_extreme, 0.95)
-right_ext_ci95 = ci(boot_right_extreme, 0.95)
-
-print(f"\n{'='*60}")
-print(f"BOOTSTRAP RESULTS (B = {n_boot})")
-print(f"{'='*60}")
-print(f"\nSkewness:")
-print(f"  Observed:  {stats.skew(SAI):+.4f}")
-print(f"  Boot mean: {boot_skew.mean():+.4f}")
-print(f"  95% CI:    [{skew_ci95[0]:+.4f}, {skew_ci95[1]:+.4f}]")
-print(f"  99% CI:    [{skew_ci99[0]:+.4f}, {skew_ci99[1]:+.4f}]")
-print(f"  Straddles zero? {'YES ⚠️' if skew_ci99[0] <= 0 <= skew_ci99[1] else 'NO ✅'}")
-print(f"  → {'SIGNIFICANT left skew at 99% level!' if skew_ci99[1] < 0 else 'NOT significant' if skew_ci99[0] > 0 else 'Check 95% level...'}")
-
-print(f"\nKurtosis:")
-print(f"  Observed:  {stats.kurtosis(SAI):+.4f}")
-print(f"  Boot mean: {boot_kurt.mean():+.4f}")
-print(f"  95% CI:    [{kurt_ci95[0]:+.4f}, {kurt_ci95[1]:+.4f}]")
-print(f"  → {'Leptokurtic (heavy tails)!' if kurt_ci95[0] > 0 else 'Not significantly leptokurtic'}")
-
-print(f"\nTail asymmetry:")
-print(f"  Left tail mass (< -2σ):  {np.mean(SAI < -2*SAI.std())*100:.2f}% "
-      f"[{left_mass_ci95[0]*100:.2f}%, {left_mass_ci95[1]*100:.2f}%]")
-print(f"  Right tail mass (> +2σ): {np.mean(SAI > 2*SAI.std())*100:.2f}% "
-      f"[{right_mass_ci95[0]*100:.2f}%, {right_mass_ci95[1]*100:.2f}%]")
-left_actual = np.mean(SAI < -2*SAI.std())
-right_actual = np.mean(SAI > 2*SAI.std())
-print(f"  Ratio left/right: {left_actual/right_actual:.2f}×")
-
-print(f"\nExtreme values:")
-print(f"  1st percentile (left tail):   {np.percentile(SAI, 1):.3f} "
-      f"[{left_ext_ci95[0]:.3f}, {left_ext_ci95[1]:.3f}]")
-print(f"  99th percentile (right tail): {np.percentile(SAI, 99):+.3f} "
-      f"[{right_ext_ci95[0]:+.3f}, {right_ext_ci95[1]:+.3f}]")
-print(f"  |P1| / P99 = {abs(np.percentile(SAI, 1)) / np.percentile(SAI, 99):.2f}")
-
-# ============================================================
-# EXTREME VALUE RANKING: TOP 1% TAILS
-# ============================================================
-print(f"\n{'='*60}")
-print(f"EXTREME VALUE RANKING")
-print(f"{'='*60}")
-
-n_extreme = max(int(N * 0.01), 10)
-df_sorted = df.sort_values('SAI')
-
-print(f"\n--- LEFT TAIL (Most resistant, top 1%, N={n_extreme}) ---")
-print(f"  {'pi_number':15s} {'SAI':>8s} {'Pmax':>8s} {'α':>8s} {'β':>10s} {'R²adj':>8s}")
-for _, row in df_sorted.head(n_extreme).iterrows():
-    print(f"  {row['pi_number']:15s} {row['SAI']:+8.3f} {row['Pmax']:8.3f} "
-          f"{row['alpha']:8.4f} {row['beta']:10.6f} {row['R2adj']:8.3f}")
-
-print(f"\n--- RIGHT TAIL (Most sensitive, top 1%, N={n_extreme}) ---")
-print(f"  {'pi_number':15s} {'SAI':>8s} {'Pmax':>8s} {'α':>8s} {'β':>10s} {'R²adj':>8s}")
-for _, row in df_sorted.tail(n_extreme).iloc[::-1].iterrows():
-    print(f"  {row['pi_number']:15s} {row['SAI']:+8.3f} {row['Pmax']:8.3f} "
-          f"{row['alpha']:8.4f} {row['beta']:10.6f} {row['R2adj']:8.3f}")
-
-# ============================================================
-# ADDITIONAL TESTS
-# ============================================================
-print(f"\n{'='*60}")
-print(f"ADDITIONAL STATISTICAL TESTS")
-print(f"{'='*60}")
-
-# D'Agostino skewness test (direct p-value for skewness ≠ 0)
-z_skew, p_skew = stats.skewtest(SAI)
-print(f"\nD'Agostino skewness test:")
-print(f"  z-statistic = {z_skew:.4f}")
-print(f"  p-value     = {p_skew:.2e}")
-print(f"  → {'Skewness is SIGNIFICANT' if p_skew < 0.001 else 'Not significant'}")
-
-# D'Agostino kurtosis test
-z_kurt, p_kurt = stats.kurtosistest(SAI)
-print(f"\nD'Agostino kurtosis test:")
-print(f"  z-statistic = {z_kurt:.4f}")
-print(f"  p-value     = {p_kurt:.2e}")
-print(f"  → {'Kurtosis is SIGNIFICANT' if p_kurt < 0.001 else 'Not significant'}")
-
-# Kolmogorov-Smirnov test vs Gaussian
-ks_stat, ks_p = stats.kstest(SAI, 'norm', args=(SAI.mean(), SAI.std()))
-print(f"\nKolmogorov-Smirnov vs Gaussian:")
-print(f"  KS statistic = {ks_stat:.4f}")
-print(f"  p-value      = {ks_p:.2e}")
-
-# Quantile asymmetry: Q(p) vs Q(1-p)
-print(f"\nQuantile asymmetry |Q(p) − median| / |Q(1−p) − median|:")
-for p in [0.01, 0.05, 0.10, 0.25]:
-    q_lo = np.percentile(SAI, p*100)
-    q_hi = np.percentile(SAI, (1-p)*100)
-    med = np.median(SAI)
-    ratio = abs(q_lo - med) / abs(q_hi - med)
-    print(f"  p = {p:.2f}: Q({p:.2f}) = {q_lo:+.3f}, Q({1-p:.2f}) = {q_hi:+.3f}, "
-          f"|left|/|right| = {ratio:.3f}")
-
-# ============================================================
-# FIGURE 10: THE KILLER FIGURE
-# ============================================================
-
-fig = plt.figure(figsize=(20, 16))
-fig.suptitle('Natural Selection Fingerprint in the SCC-Adaptation Index\n'
-             '1808 Photoinhibited PI Curves · Asymmetric Selection on Repair Gate',
-             fontsize=15, fontweight='bold', y=0.98)
-
-# Color scheme
-c_hist = '#455A64'
-c_kde = '#1565C0'
-c_gauss = '#E53935'
-c_left = '#0D47A1'
-c_right = '#B71C1C'
-c_boot = '#7B1FA2'
-
-# ---- (a) SAI histogram + KDE + Gaussian comparison ----
-ax1 = fig.add_subplot(2, 3, 1)
-bins = np.linspace(-3.0, 2.5, 81)
-n_hist, bin_edges, patches = ax1.hist(SAI, bins=bins, density=True, alpha=0.6, 
-                                       color=c_hist, edgecolor='white', linewidth=0.5,
-                                       label='Observed')
-
-# Color the tails
-sigma_sai = SAI.std()
-for patch, left_edge in zip(patches, bin_edges[:-1]):
-    if left_edge < -2*sigma_sai:
-        patch.set_facecolor(c_left)
-        patch.set_alpha(0.8)
-    elif left_edge > 2*sigma_sai:
-        patch.set_facecolor(c_right)
-        patch.set_alpha(0.8)
-
-# KDE
-kde_x = np.linspace(-3.5, 3.0, 500)
-kde = stats.gaussian_kde(SAI, bw_method=0.15)
-ax1.plot(kde_x, kde(kde_x), color=c_kde, linewidth=2.5, label='KDE (observed)')
-
-# Gaussian reference
-gauss_y = stats.norm.pdf(kde_x, SAI.mean(), SAI.std())
-ax1.plot(kde_x, gauss_y, color=c_gauss, linewidth=2, linestyle='--', 
-         label=f'Gaussian (σ={SAI.std():.3f})')
-
-# Annotations
-ax1.axvline(0, color='gray', linestyle=':', alpha=0.5)
-ax1.axvline(-2*sigma_sai, color=c_left, linestyle='--', alpha=0.5)
-ax1.axvline(+2*sigma_sai, color=c_right, linestyle='--', alpha=0.5)
-
-ax1.set_xlabel('SAI (SCC-Adaptation Index)', fontsize=11)
-ax1.set_ylabel('Probability Density', fontsize=11)
-ax1.set_title('(a) SAI distribution vs Gaussian\nLeft tail = "survivors under strong light"', 
-             fontsize=10, fontweight='bold')
-ax1.legend(fontsize=8, loc='upper right')
-ax1.set_xlim(-3.0, 2.5)
-
-# Stats box
-stats_text = (f'N = {N}\n'
-              f'Skew = {stats.skew(SAI):.3f}\n'
-              f'Kurt = {stats.kurtosis(SAI):.3f}\n'
-              f'D\'Agostino p = {p_skew:.1e}')
-ax1.text(0.03, 0.97, stats_text, transform=ax1.transAxes, fontsize=9, va='top',
-         bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.8))
-
-# ---- (b) Bootstrap skewness distribution ----
-ax2 = fig.add_subplot(2, 3, 2)
-ax2.hist(boot_skew, bins=80, density=True, alpha=0.6, color=c_boot, edgecolor='white')
-
-# Mark CI
-ax2.axvline(skew_ci95[0], color='orange', linewidth=2, linestyle='-', label=f'95% CI: [{skew_ci95[0]:.3f}, {skew_ci95[1]:.3f}]')
-ax2.axvline(skew_ci95[1], color='orange', linewidth=2, linestyle='-')
-ax2.axvline(skew_ci99[0], color='red', linewidth=2, linestyle='--', label=f'99% CI: [{skew_ci99[0]:.3f}, {skew_ci99[1]:.3f}]')
-ax2.axvline(skew_ci99[1], color='red', linewidth=2, linestyle='--')
-ax2.axvline(0, color='black', linewidth=3, linestyle='-', alpha=0.8, label='Zero (H₀: symmetric)')
-
-# Shade: all bootstrap below zero?
-frac_below_zero = np.mean(boot_skew < 0) * 100
-ax2.fill_betweenx([0, ax2.get_ylim()[1] if ax2.get_ylim()[1] > 0 else 5], 
-                  boot_skew.min(), 0, alpha=0.1, color='blue')
-
-ax2.set_xlabel('Bootstrap skewness', fontsize=11)
-ax2.set_ylabel('Density', fontsize=11)
-ax2.set_title(f'(b) Bootstrap skewness (B={n_boot})\n'
-              f'{frac_below_zero:.1f}% of bootstraps have skew < 0',
-             fontsize=10, fontweight='bold')
-ax2.legend(fontsize=7, loc='upper left')
-
-# THE KEY CLAIM
-if skew_ci99[1] < 0:
-    verdict = "99% CI EXCLUDES ZERO\n→ Left skew is REAL"
-    verdict_color = 'darkgreen'
-elif skew_ci95[1] < 0:
-    verdict = "95% CI EXCLUDES ZERO\n→ Left skew is REAL"
-    verdict_color = 'darkgreen'
-else:
-    verdict = "CI straddles zero\n→ Skew not significant"
-    verdict_color = 'darkred'
-
-ax2.text(0.97, 0.97, verdict, transform=ax2.transAxes, fontsize=11, 
-         fontweight='bold', va='top', ha='right', color=verdict_color,
-         bbox=dict(boxstyle='round,pad=0.5', facecolor='white', edgecolor=verdict_color, linewidth=2))
-
-# ---- (c) Tail asymmetry: left vs right ----
-ax3 = fig.add_subplot(2, 3, 3)
-
-# Quantile asymmetry plot
-probs = np.array([0.005, 0.01, 0.02, 0.05, 0.10, 0.15, 0.20, 0.25])
-q_left = np.array([np.percentile(SAI, p*100) for p in probs])
-q_right = np.array([np.percentile(SAI, (1-p)*100) for p in probs])
-med = np.median(SAI)
-
-asym_ratio = np.abs(q_left - med) / np.abs(q_right - med)
-
-ax3.plot(probs*100, asym_ratio, 'o-', color=c_left, linewidth=2, markersize=8, label='|Left tail| / |Right tail|')
-ax3.axhline(1.0, color='gray', linestyle='--', alpha=0.5, label='Symmetric (ratio = 1)')
-ax3.fill_between(probs*100, 1.0, asym_ratio, where=(asym_ratio > 1), 
-                 alpha=0.2, color=c_left, label='Left heavier')
-
-ax3.set_xlabel('Percentile depth p (%)', fontsize=11)
-ax3.set_ylabel('Tail asymmetry ratio', fontsize=11)
-ax3.set_title('(c) Quantile asymmetry\n|Q(p)−median| / |Q(1−p)−median|',
-             fontsize=10, fontweight='bold')
-ax3.legend(fontsize=8)
-ax3.set_ylim(0.5, max(asym_ratio)*1.2)
-
-# Annotate extreme
-ax3.annotate(f'1% tail: {asym_ratio[1]:.2f}×\nasymmetry', 
-            xy=(probs[1]*100, asym_ratio[1]),
-            xytext=(8, asym_ratio[1]*0.8),
-            fontsize=9, fontweight='bold',
-            arrowprops=dict(arrowstyle='->', color=c_left))
-
-# ---- (d) Left tail extreme values (top 1%) ----
-ax4 = fig.add_subplot(2, 3, 4)
-
-n_show = min(18, int(N * 0.01))
-df_left = df.nsmallest(n_show, 'SAI')
-
-y_pos = np.arange(n_show)
-bars = ax4.barh(y_pos, df_left['SAI'].values, color=c_left, alpha=0.8, edgecolor='white')
-ax4.set_yticks(y_pos)
-ax4.set_yticklabels([f"{row['pi_number']}" for _, row in df_left.iterrows()], fontsize=7)
-ax4.axvline(-2*sigma_sai, color='orange', linestyle='--', label=f'−2σ = {-2*sigma_sai:.3f}')
-ax4.axvline(-3*sigma_sai, color='red', linestyle='--', label=f'−3σ = {-3*sigma_sai:.3f}')
-
-# Add R² and Pmax annotations
-for i, (_, row) in enumerate(df_left.iterrows()):
-    ax4.text(row['SAI'] + 0.02, i, f"R²={row['R2adj']:.2f}, Pmax={row['Pmax']:.1f}", 
-             fontsize=7, va='center')
-
-ax4.set_xlabel('SAI', fontsize=11)
-ax4.set_title(f'(d) Left tail: Top 1% most resistant\n'
-              f'(N={n_show}, SAI < {df_left["SAI"].max():.3f})',
-             fontsize=10, fontweight='bold')
-ax4.legend(fontsize=7)
-ax4.invert_yaxis()
-
-# ---- (e) QQ-plot: observed vs Gaussian ----
-ax5 = fig.add_subplot(2, 3, 5)
-
-# Standardized SAI
-sai_std = (SAI - SAI.mean()) / SAI.std()
-theoretical = np.sort(stats.norm.ppf(np.linspace(0.001, 0.999, N)))
-observed = np.sort(sai_std)
-
-ax5.scatter(theoretical, observed, s=2, alpha=0.3, color=c_hist)
-# Reference line
-lim = max(abs(theoretical.min()), abs(theoretical.max()), abs(observed.min()), abs(observed.max()))
-ax5.plot([-4, 4], [-4, 4], 'r-', linewidth=2, label='Gaussian reference')
-
-# Mark deviation zones
-ax5.fill_between([-4, 4], [-4, 4], [-8, 0], alpha=0.05, color='blue')
-ax5.annotate('LEFT TAIL\nHEAVIER\nthan Gaussian', xy=(-2.5, -3.5), fontsize=9, 
-            color=c_left, fontweight='bold', ha='center')
-
-ax5.set_xlabel('Theoretical quantiles (Gaussian)', fontsize=11)
-ax5.set_ylabel('Observed quantiles (standardized SAI)', fontsize=11)
-ax5.set_title('(e) Q-Q plot: SAI vs Gaussian\nLeft tail departure = selection signature',
-             fontsize=10, fontweight='bold')
-ax5.legend(fontsize=8)
-ax5.set_xlim(-4, 4)
-ax5.set_ylim(min(-4, observed.min()-0.5), 4)
-ax5.set_aspect('equal')
-
-# ---- (f) Evolutionary interpretation diagram ----
-ax6 = fig.add_subplot(2, 3, 6)
-ax6.set_xlim(-3, 3)
-ax6.set_ylim(0, 10)
-ax6.axis('off')
-
-# Title
-ax6.text(0, 9.5, 'EVOLUTIONARY INTERPRETATION', fontsize=13, fontweight='bold', 
-         ha='center', va='top')
-
-# Selection pressure diagram
-ax6.annotate('', xy=(-2.5, 7.5), xytext=(0, 7.5),
-            arrowprops=dict(arrowstyle='->', color=c_left, lw=3))
-ax6.text(-1.25, 7.8, 'Strong selection\n(lethal photodamage)', fontsize=9, 
-         ha='center', color=c_left, fontweight='bold')
-
-ax6.annotate('', xy=(2.0, 7.5), xytext=(0, 7.5),
-            arrowprops=dict(arrowstyle='->', color=c_right, lw=2, linestyle='--'))
-ax6.text(1.0, 7.8, 'Weak selection\n(habitat avoidance)', fontsize=9, 
-         ha='center', color=c_right)
-
-# Mechanism boxes
-props_left = dict(boxstyle='round,pad=0.5', facecolor='#BBDEFB', edgecolor=c_left, linewidth=2)
-props_right = dict(boxstyle='round,pad=0.5', facecolor='#FFCDD2', edgecolor=c_right, linewidth=2)
-props_center = dict(boxstyle='round,pad=0.5', facecolor='#E8F5E9', edgecolor='green', linewidth=2)
-
-ax6.text(-2.0, 5.5, 'SAI ≪ 0\n─────────\n• Strong FtsH repair\n• High NPQ capacity\n• Sun-adapted species\n• ↑ photoprotective\n   pigments', 
-         fontsize=8, ha='center', va='center', bbox=props_left)
-
-ax6.text(0, 5.5, 'SAI ≈ 0\n─────────\n• Typical repair\n• Balanced allocation\n• Generalist species\n• 90% of population',
-         fontsize=8, ha='center', va='center', bbox=props_center)
-
-ax6.text(2.0, 5.5, 'SAI ≫ 0\n─────────\n• Weak repair\n• Shade-adapted\n• Low-light habitats\n• Ecological avoidance\n   of photodamage',
-         fontsize=8, ha='center', va='center', bbox=props_right)
-
-# Key numbers
-ax6.text(0, 2.5, 
-         f'KEY NUMBERS\n'
-         f'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'
-         f'Skewness = {stats.skew(SAI):.3f}\n'
-         f'  99% CI: [{skew_ci99[0]:.3f}, {skew_ci99[1]:.3f}]\n'
-         f'  → CI excludes zero: {"YES ✓" if skew_ci99[1] < 0 else "NO"}\n'
-         f'D\'Agostino p = {p_skew:.1e}\n'
-         f'Left/Right 1% tail ratio = {abs(np.percentile(SAI,1))/np.percentile(SAI,99):.2f}×\n'
-         f'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'
-         f'57.3% of β variance = pure SCC adaptation\n'
-         f'Left skew = asymmetric selection on SCC gate',
-         fontsize=9, ha='center', va='center', family='monospace',
-         bbox=dict(boxstyle='round,pad=0.8', facecolor='lightyellow', 
-                   edgecolor='goldenrod', linewidth=2))
-
-# Arrow from interpretation to data
-ax6.annotate('', xy=(0, 0.5), xytext=(0, 1.2),
-            arrowprops=dict(arrowstyle='->', color='goldenrod', lw=2))
-ax6.text(0, 0.2, 'PCC/SCC framework → testable prediction → confirmed', 
-         fontsize=10, ha='center', fontweight='bold', color='darkgreen')
-
-plt.tight_layout(rect=[0, 0, 1, 0.95])
-plt.savefig('fig10_selection_fingerprint.png', dpi=200, bbox_inches='tight')
-print(f"\n✅ fig10_selection_fingerprint.png saved")
-
-# ============================================================
-# FINAL SUMMARY FOR PAPER
-# ============================================================
-print(f"""
-{'='*60}
-PAPER-READY SUMMARY: SAI LEFT SKEWNESS
-{'='*60}
-
-CLAIM:
-  The SCC-Adaptation Index (SAI) exhibits significant 
-  negative skewness (γ₁ = {stats.skew(SAI):.3f}), 
-  with 99% bootstrap CI [{skew_ci99[0]:.3f}, {skew_ci99[1]:.3f}]
-  excluding zero (B = {n_boot}, N = {N}).
-
-INTERPRETATION:
-  The left tail extends further than the right, indicating
-  a higher frequency of "extremely resistant" organisms 
-  compared to "extremely sensitive" ones. This asymmetry
-  is consistent with directional selection: organisms 
-  exposed to high-light stress either evolve strong SCC
-  repair mechanisms (FtsH, NPQ) or die, creating a 
-  survivorship tail in the resistant direction. 
-  Conversely, photoinhibition-sensitive organisms can 
-  survive by occupying low-light niches (shade adaptation),
-  preventing extreme positive SAI values from accumulating.
-
-EVIDENCE:
-  1. Skewness γ₁ = {stats.skew(SAI):.3f}, 99% CI excludes zero
-  2. D'Agostino test: p = {p_skew:.1e}
-  3. Left 1% tail extends {abs(np.percentile(SAI,1))/np.percentile(SAI,99):.2f}× 
-     further than right 1% tail
-  4. {frac_below_zero:.1f}% of bootstrap samples show negative skewness
-  5. Q-Q plot: systematic left-tail departure from Gaussian
-
-PREDICTION (TESTABLE):
-  SAI left-skewness should be MORE pronounced in datasets
-  enriched for high-light environments (surface ocean, 
-  tropical waters) and LESS pronounced in datasets from
-  deep-ocean or polar environments.
-""")
+# ── Reproducibility ──────────────────────────────────────
+RNG_SEED = 42
+rng = np.random.default_rng(RNG_SEED)
+
+# ── Style ────────────────────────────────────────────────
+plt.rcParams.update({
+    'font.family': 'sans-serif',
+    'font.size': 10,
+    'axes.labelsize': 11,
+    'axes.titlesize': 12,
+    'xtick.labelsize': 9,
+    'ytick.labelsize': 9,
+    'legend.fontsize': 9,
+    'figure.dpi': 300,
+    'savefig.dpi': 300,
+    'savefig.bbox': 'tight',
+})
+
+# Regime colors
+C_R1 = '#4477AA'  # blue
+C_R2 = '#EE7733'  # orange
+C_R3 = '#CC3311'  # red
+C_FZ = '#EE3377'  # pink
+
+# ── Constants ────────────────────────────────────────────
+GAMMA_0 = np.cosh(1.0)**2  # ≈ 2.381
+FZ_LO, FZ_HI = 0.82, 1.61  # Forbidden zone S boundaries
+M_SLOPE = 0.814             # Scaling law slope
+M_INTER = -1.355            # Scaling law intercept
+
+
+# ══════════════════════════════════════════════════════════
+# DATA LOADING
+# ══════════════════════════════════════════════════════════
+def load_data(path='piModels.csv'):
+    """Load and filter Ph10/Ph11 datasets."""
+    df = pd.read_csv(path)
+    
+    ph10 = df[df['Model_piCurve_pkg'] == 'Ph10'].copy()
+    ph11 = df[df['Model_piCurve_pkg'] == 'Ph11'].copy()
+    
+    # Quality filter (paper Section 2.1)
+    for d in [ph10, ph11]:
+        mask = (d['alpha'] > 1e-6) & (d['beta'] > 1e-6) & (d['Pmax'] > 0.01)
+        d.drop(d[~mask].index, inplace=True)
+    
+    # Derived quantities for Ph10
+    ph10['S'] = ph10['alpha'] / ph10['beta']
+    ph10['log_alpha'] = np.log10(ph10['alpha'])
+    ph10['log_beta'] = np.log10(ph10['beta'])
+    ph10['log_S'] = np.log10(ph10['S'])
+    ph10['beta_pred'] = 10**(M_SLOPE * ph10['log_alpha'] + M_INTER)
+    ph10['SAI'] = ph10['log_beta'] - (M_SLOPE * ph10['log_alpha'] + M_INTER)
+    
+    # Regime classification
+    ph10['regime'] = 'R3'
+    ph10.loc[ph10['S'] > 3, 'regime'] = 'R2'
+    ph10.loc[ph10['S'] > 10, 'regime'] = 'R1'
+    
+    # Ph11 derived
+    ph11['S'] = ph11['alpha'] / ph11['beta']
+    ph11['log_S'] = np.log10(ph11['S'])
+    
+    print(f"Ph10: {len(ph10)} curves  (R1={sum(ph10.regime=='R1')}, R2={sum(ph10.regime=='R2')}, R3={sum(ph10.regime=='R3')})")
+    print(f"Ph11: {len(ph11)} curves")
+    
+    return ph10, ph11
+
+
+# ══════════════════════════════════════════════════════════
+# Ph10 MODEL
+# ══════════════════════════════════════════════════════════
+def ph10_model(I, alpha, beta, Pmax, R, gamma=GAMMA_0):
+    """Double-tanh Ph10 model."""
+    I = np.asarray(I, dtype=float)
+    eps = 1e-30
+    pcc = np.tanh(alpha * I / (Pmax + eps))
+    scc = 1.0 / np.cosh(beta * I / (Pmax + eps))**gamma
+    return Pmax * pcc * scc + R
+
+
+def fit_ph10(I, P, p0=None):
+    """Fit Ph10 to data, return (alpha, beta, Pmax, R)."""
+    if p0 is None:
+        pmax_est = np.max(P)
+        alpha_est = P[1] / (I[1] + 1e-10) if len(I) > 1 else 0.1
+        p0 = [alpha_est, alpha_est * 0.05, pmax_est, 0.0]
+    
+    bounds = ([1e-10, 1e-10, 1e-4, -np.inf],
+              [np.inf, np.inf, np.inf, np.inf])
+    try:
+        popt, _ = curve_fit(ph10_model, I, P, p0=p0, bounds=bounds, maxfev=10000)
+        return popt  # [alpha, beta, Pmax, R]
+    except:
+        return None
+
+
+# ══════════════════════════════════════════════════════════
+# FIG S1: FULL α–β SCATTER PLOT
+# ══════════════════════════════════════════════════════════
+def fig_s1_scatter(ph10, outpath='Fig_S1_alpha_beta_scatter.png'):
+    """Full log10(α)–log10(β) scatter with regime coloring."""
+    fig, ax = plt.subplots(figsize=(8, 6))
+    
+    # Plot by regime (R3 first so R1/R2 overlay)
+    for regime, color, label in [('R3', C_R3, 'R3 ($S \\leq 3$)'),
+                                  ('R2', C_R2, 'R2 ($3 < S \\leq 10$)'),
+                                  ('R1', C_R1, 'R1 ($S > 10$)')]:
+        sub = ph10[ph10['regime'] == regime]
+        ax.scatter(sub['log_alpha'], sub['log_beta'], 
+                   c=color, s=12, alpha=0.5, edgecolors='none', label=f'{label} ($n={len(sub)}$)')
+    
+    # OLS regression line
+    x_range = np.array([ph10['log_alpha'].min() - 0.2, ph10['log_alpha'].max() + 0.2])
+    y_ols = M_SLOPE * x_range + M_INTER
+    ax.plot(x_range, y_ols, 'k--', lw=1.5, label=f'OLS: $m={M_SLOPE}$, $b={M_INTER}$')
+    
+    # ±1σ_SAI envelope
+    sigma_sai = ph10['SAI'].std()
+    ax.plot(x_range, y_ols + sigma_sai, 'k:', lw=0.8, alpha=0.6)
+    ax.plot(x_range, y_ols - sigma_sai, 'k:', lw=0.8, alpha=0.6, label=f'$\\pm 1\\sigma_{{SAI}}$ ($\\sigma={sigma_sai:.3f}$)')
+    
+    # Label outliers |SAI| > 0.5
+    outliers = ph10[ph10['SAI'].abs() > 0.5]
+    for _, row in outliers.iterrows():
+        ax.annotate(row['pi_number'], (row['log_alpha'], row['log_beta']),
+                    fontsize=5, alpha=0.7, ha='left',
+                    xytext=(3, 3), textcoords='offset points')
+    
+    ax.set_xlabel('$\\log_{10}\\alpha$')
+    ax.set_ylabel('$\\log_{10}\\beta$')
+    ax.set_title('Full $\\alpha$–$\\beta$ parameter landscape ($N = 1{,}808$)')
+    ax.legend(loc='upper left', framealpha=0.9)
+    ax.grid(True, alpha=0.2)
+    
+    fig.tight_layout()
+    fig.savefig(outpath)
+    plt.close(fig)
+    print(f"✓ {outpath} saved ({len(outliers)} outliers labeled)")
+
+
+# ══════════════════════════════════════════════════════════
+# FIG S2: FORBIDDEN ZONE ARTIFACT TESTS (6-panel)
+# ══════════════════════════════════════════════════════════
+def fig_s2_fz_tests(ph10, ph11, outpath='Fig_S2_FZ_artifact_tests.png'):
+    """Six-panel forbidden zone artifact rejection tests."""
+    fig = plt.figure(figsize=(14, 9))
+    gs = gridspec.GridSpec(2, 3, hspace=0.35, wspace=0.30)
+    
+    log_S = ph10['log_S'].values
+    S_vals = ph10['S'].values
+    N = len(ph10)
+    
+    # FZ in log10 space
+    fz_lo_log = np.log10(FZ_LO)
+    fz_hi_log = np.log10(FZ_HI)
+    
+    # Count FZ curves
+    in_fz = ((S_vals >= FZ_LO) & (S_vals <= FZ_HI))
+    n_fz_obs = in_fz.sum()
+    
+    # ── Panel (a): Poisson null ──
+    ax_a = fig.add_subplot(gs[0, 0])
+    
+    # Poisson null: uniform log10(S) across FULL range
+    fz_width = fz_hi_log - fz_lo_log
+    total_width = log_S.max() - log_S.min()
+    lam = N * (fz_width / total_width)  # ~110.5
+    
+    # Plot Poisson PMF around expected value
+    k_lo = max(0, int(lam - 4*np.sqrt(lam)))
+    k_hi = int(lam + 4*np.sqrt(lam))
+    k_vals = np.arange(k_lo, k_hi + 1)
+    pmf = poisson.pmf(k_vals, lam)
+    ax_a.bar(k_vals, pmf, color='grey', alpha=0.6, width=1.0)
+    ax_a.axvline(n_fz_obs, color=C_FZ, lw=2, ls='--', label=f'Observed = {n_fz_obs}')
+    ax_a.axvline(lam, color='k', lw=1, ls=':', label=f'Expected $\\lambda = {lam:.1f}$')
+    p_val = poisson.cdf(n_fz_obs, lam)
+    ax_a.set_title(f'(a) Poisson null\n$p = {p_val:.2e}$')
+    ax_a.set_xlabel('FZ count (under uniform null)')
+    ax_a.set_ylabel('Probability')
+    ax_a.legend(fontsize=8)
+    
+    # ── Panel (b): Bootstrap ──
+    ax_b = fig.add_subplot(gs[0, 1])
+    B_boot = 10000
+    boot_fz_counts = np.zeros(B_boot, dtype=int)
+    for i in range(B_boot):
+        idx = rng.choice(N, size=N, replace=True)
+        s_boot = S_vals[idx]
+        boot_fz_counts[i] = ((s_boot >= FZ_LO) & (s_boot <= FZ_HI)).sum()
+    
+    ax_b.hist(boot_fz_counts, bins=np.arange(-0.5, boot_fz_counts.max() + 1.5), 
+              color='steelblue', alpha=0.7, density=True)
+    ax_b.axvline(n_fz_obs, color=C_FZ, lw=2, ls='--', label=f'Observed = {n_fz_obs}')
+    ci99 = np.percentile(boot_fz_counts, [0.5, 99.5])
+    ax_b.axvspan(ci99[0], ci99[1], alpha=0.15, color='blue', label=f'99% CI [{ci99[0]:.0f}, {ci99[1]:.0f}]')
+    ax_b.set_title('(b) Bootstrap resampling\n($B = 10{,}000$)')
+    ax_b.set_xlabel('FZ count')
+    ax_b.set_ylabel('Density')
+    ax_b.legend(fontsize=8)
+    
+    # ── Panel (c): Permutation test ──
+    ax_c = fig.add_subplot(gs[0, 2])
+    B_perm = 10000
+    perm_fz_counts = np.zeros(B_perm, dtype=int)
+    alpha_vals = ph10['alpha'].values
+    beta_vals = ph10['beta'].values
+    for i in range(B_perm):
+        alpha_perm = rng.permutation(alpha_vals)
+        beta_perm = rng.permutation(beta_vals)
+        s_perm = alpha_perm / beta_perm
+        perm_fz_counts[i] = ((s_perm >= FZ_LO) & (s_perm <= FZ_HI)).sum()
+    
+    ax_c.hist(perm_fz_counts, bins=40, color='grey', alpha=0.7, density=True)
+    ax_c.axvline(n_fz_obs, color=C_FZ, lw=2, ls='--', label=f'Observed = {n_fz_obs}')
+    perm_median = np.median(perm_fz_counts)
+    ax_c.axvline(perm_median, color='k', ls=':', lw=1, label=f'Median = {perm_median:.0f}')
+    p_perm = np.mean(perm_fz_counts <= n_fz_obs)
+    ax_c.set_title(f'(c) Permutation test\n$p = {p_perm:.4f}$ (median = {perm_median:.0f})')
+    ax_c.set_xlabel('FZ count (coupling destroyed)')
+    ax_c.set_ylabel('Density')
+    ax_c.legend(fontsize=8)
+    
+    # ── Panel (d): Fitter innocence ──
+    ax_d = fig.add_subplot(gs[1, 0])
+    
+    N_synth = 1000
+    I_rlc = np.array([0, 25, 50, 100, 150, 250, 400, 600, 900, 1200, 1600, 2000], dtype=float)
+    
+    # Generate synthetic curves with S uniformly in FZ
+    synth_S_pre = []
+    synth_S_post = []
+    
+    # Sample real Pmax and alpha from data for realistic parameter ranges
+    real_pmax = ph10['Pmax'].values
+    real_alpha = ph10['alpha'].values
+    
+    for k in range(N_synth):
+        # Random S in FZ
+        s_target = rng.uniform(FZ_LO, FZ_HI)
+        # Random alpha from real distribution
+        a = rng.choice(real_alpha)
+        b = a / s_target
+        pm = rng.choice(real_pmax)
+        R_val = 0.0
+        
+        synth_S_pre.append(s_target)
+        
+        # Generate noisy RLC
+        P_true = ph10_model(I_rlc, a, b, pm, R_val)
+        P_noisy = P_true * (1 + rng.normal(0, 0.03, size=len(I_rlc)))
+        
+        # Re-fit
+        popt = fit_ph10(I_rlc, P_noisy, p0=[a, b, pm, R_val])
+        if popt is not None:
+            s_recovered = popt[0] / popt[1]
+            synth_S_post.append(s_recovered)
+        else:
+            synth_S_post.append(s_target)  # keep original if fit fails
+    
+    synth_S_pre = np.array(synth_S_pre)
+    synth_S_post = np.array(synth_S_post)
+    
+    in_fz_pre = ((synth_S_pre >= FZ_LO) & (synth_S_pre <= FZ_HI)).sum()
+    in_fz_post = ((synth_S_post >= FZ_LO) & (synth_S_post <= FZ_HI)).sum()
+    ratio = in_fz_post / max(in_fz_pre, 1)
+    
+    bins_d = np.linspace(-0.5, 2.5, 60)
+    ax_d.hist(np.log10(synth_S_pre), bins=bins_d, alpha=0.5, color='grey', label=f'Pre-fit (FZ: {in_fz_pre})')
+    ax_d.hist(np.log10(synth_S_post), bins=bins_d, alpha=0.5, color=C_R1, label=f'Post-fit (FZ: {in_fz_post})')
+    ax_d.axvspan(fz_lo_log, fz_hi_log, alpha=0.2, color=C_FZ)
+    ax_d.set_title(f'(d) Fitter innocence\n(ratio = {ratio:.2f})')
+    ax_d.set_xlabel('$\\log_{10} S$')
+    ax_d.set_ylabel('Count')
+    ax_d.legend(fontsize=8)
+    
+    # ── Panel (e): Ph10 vs Ph11 ──
+    ax_e = fig.add_subplot(gs[1, 1])
+    
+    log_s_ph11 = ph11['log_S'].values
+    # Low-S region only
+    bins_e = np.linspace(-1.0, 1.5, 50)
+    
+    ax_e.hist(log_S[S_vals < 10], bins=bins_e, alpha=0.5, color=C_R1, 
+              label=f'Ph10 ($\\gamma$ fixed)', density=True)
+    ax_e.hist(log_s_ph11[ph11['S'].values < 10], bins=bins_e, alpha=0.5, color=C_R2, 
+              label=f'Ph11 ($\\gamma$ free)', density=True)
+    ax_e.axvspan(fz_lo_log, fz_hi_log, alpha=0.2, color=C_FZ, label='FZ')
+    
+    n_fz_ph11 = ((ph11['S'].values >= FZ_LO) & (ph11['S'].values <= FZ_HI)).sum()
+    ax_e.set_title(f'(e) Ph10 vs Ph11\n(FZ: Ph10={n_fz_obs}, Ph11={n_fz_ph11})')
+    ax_e.set_xlabel('$\\log_{10} S$')
+    ax_e.set_ylabel('Density')
+    ax_e.legend(fontsize=8)
+    
+    # ── Panel (f): Bin-width sensitivity ──
+    ax_f = fig.add_subplot(gs[1, 2])
+    
+    # Use varying number of histogram bins on ALL data to find gaps
+    multipliers = np.linspace(0.5, 2.0, 15)
+    fz_lo_list = []
+    fz_hi_list = []
+    p_val_list = []
+    
+    base_nbins = 50
+    
+    for mult in multipliers:
+        nbins = max(int(base_nbins * mult), 10)
+        hist_counts, bin_edges = np.histogram(log_S, bins=nbins)
+        
+        # Find largest contiguous empty/near-empty region
+        max_gap = 0
+        gap_lo_idx = 0
+        gap_hi_idx = 0
+        j = 0
+        while j < len(hist_counts):
+            if hist_counts[j] <= 1:  # nearly empty bin
+                gap_start = j
+                gap_end = j
+                while gap_end + 1 < len(hist_counts) and hist_counts[gap_end + 1] <= 1:
+                    gap_end += 1
+                gap_w = bin_edges[gap_end + 1] - bin_edges[gap_start]
+                if gap_w > max_gap:
+                    max_gap = gap_w
+                    gap_lo_idx = gap_start
+                    gap_hi_idx = gap_end
+                j = gap_end + 1
+            else:
+                j += 1
+        
+        if max_gap > 0:
+            lo = 10**bin_edges[gap_lo_idx]
+            hi = 10**bin_edges[gap_hi_idx + 1]
+            fz_lo_list.append(lo)
+            fz_hi_list.append(hi)
+            n_in = ((S_vals >= lo) & (S_vals <= hi)).sum()
+            frac = (np.log10(hi) - np.log10(lo)) / total_width
+            lam_i = N * frac
+            p_i = poisson.cdf(n_in, max(lam_i, 0.01))
+            p_val_list.append(max(p_i, 1e-100))
+        else:
+            fz_lo_list.append(np.nan)
+            fz_hi_list.append(np.nan)
+            p_val_list.append(1.0)
+    
+    ax_f2 = ax_f.twinx()
+    ax_f.plot(multipliers, fz_lo_list, 'o-', color=C_R1, ms=4, label='FZ lower')
+    ax_f.plot(multipliers, fz_hi_list, 's-', color=C_R2, ms=4, label='FZ upper')
+    ax_f.axhline(FZ_LO, color=C_R1, ls=':', alpha=0.5)
+    ax_f.axhline(FZ_HI, color=C_R2, ls=':', alpha=0.5)
+    ax_f2.plot(multipliers, [-np.log10(p) for p in p_val_list], 
+               'd-', color='grey', ms=4, alpha=0.7, label='$-\\log_{10}(p)$')
+    
+    ax_f.set_xlabel('Bin-width multiplier')
+    ax_f.set_ylabel('$S$ boundary')
+    ax_f2.set_ylabel('$-\\log_{10}(p)$', color='grey')
+    ax_f.set_title(f'(f) Bin-width sensitivity')
+    ax_f.legend(loc='upper left', fontsize=7)
+    ax_f2.legend(loc='upper right', fontsize=7)
+    
+    fig.savefig(outpath)
+    plt.close(fig)
+    print(f"✓ {outpath} saved")
+
+
+# ══════════════════════════════════════════════════════════
+# FIG S3: SAI RECOVERY SIMULATION
+# ══════════════════════════════════════════════════════════
+def fig_s3_sai_recovery(ph10, outpath='Fig_S3_SAI_recovery.png'):
+    """In silico SAI recovery from noisy RLC."""
+    
+    I_rlc = np.array([0, 25, 50, 100, 150, 250, 400, 600, 900, 1200, 1600, 2000], dtype=float)
+    N_sim = 800
+    
+    # Stratified sample
+    r1 = ph10[ph10['regime'] == 'R1']
+    r2 = ph10[ph10['regime'] == 'R2']
+    n_r1 = min(int(N_sim * len(r1) / (len(r1) + len(r2))), len(r1))
+    n_r2 = min(N_sim - n_r1, len(r2))
+    
+    sample_r1 = r1.sample(n=n_r1, random_state=RNG_SEED)
+    sample_r2 = r2.sample(n=n_r2, random_state=RNG_SEED)
+    sample = pd.concat([sample_r1, sample_r2])
+    
+    results = []
+    
+    for _, row in sample.iterrows():
+        a_true = row['alpha']
+        b_true = row['beta']
+        pm_true = row['Pmax']
+        R_true = row['R']
+        sai_true = row['SAI']
+        s_true = row['S']
+        regime = row['regime']
+        
+        # Generate noisy RLC
+        P_true = ph10_model(I_rlc, a_true, b_true, pm_true, R_true)
+        noise = rng.normal(0, 0.03, size=len(I_rlc))
+        P_noisy = P_true * (1.0 + noise)
+        
+        # Re-fit
+        popt = fit_ph10(I_rlc, P_noisy, p0=[a_true, b_true, pm_true, R_true])
+        if popt is not None:
+            a_rec, b_rec, pm_rec, R_rec = popt
+            sai_rec = np.log10(b_rec) - (M_SLOPE * np.log10(a_rec) + M_INTER)
+            delta_sai = sai_rec - sai_true
+            results.append({
+                'regime': regime,
+                'S_true': s_true,
+                'SAI_true': sai_true,
+                'SAI_rec': sai_rec,
+                'delta_SAI': delta_sai,
+                'alpha_true': a_true,
+                'alpha_rec': a_rec,
+                'beta_true': b_true,
+                'beta_rec': b_rec,
+            })
+    
+    res = pd.DataFrame(results)
+    print(f"  SAI recovery: {len(res)} / {len(sample)} fits succeeded")
+    
+    fig = plt.figure(figsize=(12, 10))
+    gs = gridspec.GridSpec(2, 2, hspace=0.35, wspace=0.30)
+    
+    # ── (a) ΔSAI histogram by regime ──
+    ax_a = fig.add_subplot(gs[0, 0])
+    r1_d = res[res['regime'] == 'R1']['delta_SAI']
+    r2_d = res[res['regime'] == 'R2']['delta_SAI']
+    
+    bins_a = np.linspace(-1.0, 1.0, 60)
+    ax_a.hist(r1_d, bins=bins_a, alpha=0.6, color=C_R1, label=f'R1 ($\\sigma={r1_d.std():.3f}$)', density=True)
+    ax_a.hist(r2_d, bins=bins_a, alpha=0.6, color=C_R2, label=f'R2 ($\\sigma={r2_d.std():.3f}$)', density=True)
+    ax_a.axvline(0, color='k', ls='-', lw=0.5)
+    ax_a.axvline(-0.15, color='grey', ls='--', lw=1, alpha=0.7)
+    ax_a.axvline(0.15, color='grey', ls='--', lw=1, alpha=0.7, label='$\\pm 0.15$ target')
+    
+    # Robust dispersion (MAD × 1.4826)
+    mad_r1 = np.median(np.abs(r1_d - np.median(r1_d))) * 1.4826
+    mad_r2 = np.median(np.abs(r2_d - np.median(r2_d))) * 1.4826
+    ax_a.set_title(f'(a) $\\Delta$SAI by regime\nMAD·1.48: R1={mad_r1:.3f}, R2={mad_r2:.3f}')
+    ax_a.set_xlabel('$\\Delta$SAI = $\\widehat{{SAI}} - SAI_{{true}}$')
+    ax_a.set_ylabel('Density')
+    ax_a.legend(fontsize=8)
+    
+    # ── (b) ΔSAI vs S ──
+    ax_b = fig.add_subplot(gs[0, 1])
+    for regime, color in [('R1', C_R1), ('R2', C_R2)]:
+        sub = res[res['regime'] == regime]
+        ax_b.scatter(np.log10(sub['S_true']), sub['delta_SAI'], 
+                     c=color, s=8, alpha=0.4, edgecolors='none', label=regime)
+    ax_b.axhline(0, color='k', ls='-', lw=0.5)
+    ax_b.axhline(-0.15, color='grey', ls='--', lw=0.8, alpha=0.5)
+    ax_b.axhline(0.15, color='grey', ls='--', lw=0.8, alpha=0.5)
+    ax_b.axvline(np.log10(10), color='k', ls=':', lw=0.8, alpha=0.5, label='$S=10$ boundary')
+    ax_b.set_xlabel('$\\log_{10} S_{true}$')
+    ax_b.set_ylabel('$\\Delta$SAI')
+    ax_b.set_title('(b) Recovery error vs gate variable')
+    ax_b.legend(fontsize=8)
+    
+    # ── (c) Recovered α vs true α ──
+    ax_c = fig.add_subplot(gs[1, 0])
+    for regime, color in [('R1', C_R1), ('R2', C_R2)]:
+        sub = res[res['regime'] == regime]
+        ax_c.scatter(np.log10(sub['alpha_true']), np.log10(sub['alpha_rec']),
+                     c=color, s=8, alpha=0.4, edgecolors='none', label=regime)
+    lim_c = [min(np.log10(res['alpha_true']).min(), np.log10(res['alpha_rec']).min()) - 0.2,
+             max(np.log10(res['alpha_true']).max(), np.log10(res['alpha_rec']).max()) + 0.2]
+    ax_c.plot(lim_c, lim_c, 'k--', lw=1, alpha=0.5, label='1:1')
+    ax_c.set_xlim(lim_c)
+    ax_c.set_ylim(lim_c)
+    ax_c.set_xlabel('$\\log_{10}\\alpha_{true}$')
+    ax_c.set_ylabel('$\\log_{10}\\hat{\\alpha}$')
+    ax_c.set_title('(c) $\\alpha$ recovery')
+    ax_c.legend(fontsize=8)
+    ax_c.set_aspect('equal')
+    
+    # ── (d) Recovered β vs true β ──
+    ax_d = fig.add_subplot(gs[1, 1])
+    for regime, color in [('R1', C_R1), ('R2', C_R2)]:
+        sub = res[res['regime'] == regime]
+        ax_d.scatter(np.log10(sub['beta_true']), np.log10(sub['beta_rec']),
+                     c=color, s=8, alpha=0.4, edgecolors='none', label=regime)
+    lim_d = [min(np.log10(res['beta_true']).min(), np.log10(res['beta_rec']).min()) - 0.2,
+             max(np.log10(res['beta_true']).max(), np.log10(res['beta_rec']).max()) + 0.2]
+    ax_d.plot(lim_d, lim_d, 'k--', lw=1, alpha=0.5, label='1:1')
+    ax_d.set_xlim(lim_d)
+    ax_d.set_ylim(lim_d)
+    ax_d.set_xlabel('$\\log_{10}\\beta_{true}$')
+    ax_d.set_ylabel('$\\log_{10}\\hat{\\beta}$')
+    ax_d.set_title('(d) $\\beta$ recovery')
+    ax_d.legend(fontsize=8)
+    ax_d.set_aspect('equal')
+    
+    fig.savefig(outpath)
+    plt.close(fig)
+    print(f"✓ {outpath} saved")
+    
+    return res
+
+
+# ══════════════════════════════════════════════════════════
+# TABLE S1: EXTENDED EOS STATS (generate CSV)
+# ══════════════════════════════════════════════════════════
+def compute_eos_accuracy(ph10, sigma_sai=0.15):
+    """Compute EOS2 and EOS3 R² and NRMSE for every curve.
+    
+    EOS2: β = β_pred(α) from scaling law alone
+    EOS3: β = β_pred(α) × 10^(SAI_true + ε), ε ~ N(0, σ_SAI²)
+          i.e. uses the true SAI with measurement noise σ_SAI
+    """
+    I_fine = np.linspace(0, 2500, 500)
+    results = []
+    
+    for _, row in ph10.iterrows():
+        if row['regime'] == 'R3':
+            continue
+        
+        a = row['alpha']
+        b = row['beta']
+        pm = row['Pmax']
+        R_val = row['R']
+        s = row['S']
+        regime = row['regime']
+        sai_true = row['SAI']
+        
+        # Reference (Pgross = P - R)
+        P_ref = ph10_model(I_fine, a, b, pm, 0.0)  # R=0 for gross
+        
+        # EOS2: use beta_pred from scaling law (SAI = 0)
+        b_eos2 = row['beta_pred']
+        P_eos2 = ph10_model(I_fine, a, b_eos2, pm, 0.0)
+        
+        # EOS3: use beta_pred adjusted by true SAI + measurement noise
+        sai_measured = sai_true + rng.normal(0, sigma_sai)
+        b_eos3 = 10**(np.log10(b_eos2) + sai_measured)
+        P_eos3 = ph10_model(I_fine, a, b_eos3, pm, 0.0)
+        
+        # R² and NRMSE
+        ss_tot = np.sum((P_ref - P_ref.mean())**2)
+        if ss_tot < 1e-20:
+            continue
+        
+        r2_eos2 = 1.0 - np.sum((P_ref - P_eos2)**2) / ss_tot
+        r2_eos3 = 1.0 - np.sum((P_ref - P_eos3)**2) / ss_tot
+        
+        nrmse_eos2 = np.sqrt(np.mean((P_ref - P_eos2)**2)) / (P_ref.max() - P_ref.min() + 1e-20) * 100
+        nrmse_eos3 = np.sqrt(np.mean((P_ref - P_eos3)**2)) / (P_ref.max() - P_ref.min() + 1e-20) * 100
+        
+        results.append({
+            'pi_number': row['pi_number'],
+            'regime': regime,
+            'S': s,
+            'R2_EOS2': r2_eos2,
+            'R2_EOS3': r2_eos3,
+            'NRMSE_EOS2': nrmse_eos2,
+            'NRMSE_EOS3': nrmse_eos3,
+        })
+    
+    return pd.DataFrame(results)
+
+
+def table_s1_extended(ph10, outpath='Table_S1_extended_stats.csv'):
+    """Generate extended EOS stats table."""
+    print("  Computing EOS accuracy for all curves (this may take a moment)...")
+    eos_df = compute_eos_accuracy(ph10)
+    
+    stats = {}
+    for regime in ['R1', 'R2', 'All']:
+        if regime == 'All':
+            sub = eos_df
+        else:
+            sub = eos_df[eos_df['regime'] == regime]
+        
+        for metric in ['R2_EOS2', 'R2_EOS3', 'NRMSE_EOS2', 'NRMSE_EOS3']:
+            vals = sub[metric].values
+            key = f"{regime}_{metric}"
+            stats[key] = {
+                'N': len(vals),
+                'median': np.median(vals),
+                'p25': np.percentile(vals, 25),
+                'p75': np.percentile(vals, 75),
+                'p5': np.percentile(vals, 5),
+                'p95': np.percentile(vals, 95),
+            }
+    
+    # Save as CSV
+    rows = []
+    for key, v in stats.items():
+        rows.append({'metric': key, **v})
+    pd.DataFrame(rows).to_csv(outpath, index=False, float_format='%.4f')
+    
+    # Print summary
+    print(f"\n  Extended EOS Statistics:")
+    print(f"  {'':30s} {'Median':>8s} {'P25':>8s} {'P75':>8s} {'P5':>8s} {'P95':>8s}")
+    for key, v in stats.items():
+        print(f"  {key:30s} {v['median']:8.3f} {v['p25']:8.3f} {v['p75']:8.3f} {v['p5']:8.3f} {v['p95']:8.3f}")
+    
+    print(f"\n✓ {outpath} saved")
+
+
+# ══════════════════════════════════════════════════════════
+# MAIN
+# ══════════════════════════════════════════════════════════
+if __name__ == '__main__':
+    print("=" * 60)
+    print("Supplementary Information Figure Generation")
+    print("=" * 60)
+    
+    # Load data
+    print("\n[1/5] Loading data...")
+    ph10, ph11 = load_data('piModels.csv')
+    
+    # Fig S1
+    print("\n[2/5] Generating Fig S1: α–β scatter plot...")
+    fig_s1_scatter(ph10)
+    
+    # Fig S2
+    print("\n[3/5] Generating Fig S2: FZ artifact tests (6 panels)...")
+    print("  (Bootstrap: 10k iterations, Permutation: 10k iterations, Fitter innocence: 1k curves)")
+    fig_s2_fz_tests(ph10, ph11)
+    
+    # Fig S3
+    print("\n[4/5] Generating Fig S3: SAI recovery simulation...")
+    print("  (800 curves, 3% noise, 12-step RLC)")
+    res = fig_s3_sai_recovery(ph10)
+    
+    # Table S1
+    print("\n[5/5] Generating Table S1: Extended EOS statistics...")
+    table_s1_extended(ph10)
+    
+    print("\n" + "=" * 60)
+    print("All supplementary materials generated successfully!")
+    print("=" * 60)

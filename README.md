@@ -1,4 +1,4 @@
-# 🌿 Midori-no-Tamaki
+# 🌿 Midori-no-Tamaki（緑の環）
 
 **Equation of State for Photosynthesis–Irradiance Curves**
 
@@ -13,7 +13,7 @@
 
 Photosynthesis–irradiance (PI) curves are central to aquatic ecology, algal biotechnology, and photobioreactor control. The standard workflow is: **measure many light–response points → fit a 4-parameter model**. This is slow, expensive, and incompatible with real-time monitoring.
 
-**Tamaki-no-midori** introduces an **Equation of State (EOS)** that collapses the PI parameter space:
+**Midori-no-Tamaki** introduces an **Equation of State (EOS)** that collapses the PI parameter space:
 
 | Mode | Inputs | What you get |
 |------|--------|-------------|
@@ -27,8 +27,8 @@ The key insight: the photoinhibition parameter β is **not independent** of the 
 ### Installation
 
 ```bash
-git clone https://github.com/miosync-inc/tamaki-no-midori.git
-cd tamaki-no-midori
+git clone https://github.com/miosync-inc/midori-no-tamaki.git
+cd midori-no-tamaki
 # No dependencies required for core module (pure Python, stdlib only)
 ```
 
@@ -184,10 +184,13 @@ Within the low-S region, a **forbidden zone** (0.82 < S < 1.61) exists where alm
 ## Repository Structure
 
 ```
-tamaki-no-midori/
+midori-no-tamaki/
 ├── README.md               ← you are here
 ├── LICENSE                  ← MIT
 ├── eos_sensor.py            ← soft sensor module (zero dependencies)
+├── FACTSHEET.md             ← detailed technical reference
+├── paper/
+│   └── draft_v6_bej.md      ← manuscript (BEJ submission)
 ├── raw_data/
 │   ├── ph10_with_SAI.csv    ← 1,808 PI curves with SAI
 │   ├── ph10_extended.csv    ← extended parameter table
@@ -225,11 +228,11 @@ If you use this code or the EOS framework:
 
 ## Authors
 
-**Masamichi Iizumi** — 
-**Tamaki Iizumi** — 
-Miosync, Inc.
+**Masamichi Iizumi** —  Miosync, Inc.
+**Tamaki Iizumi** —  Miosync, Inc.
+
 ---
 
 *"The measure-then-fit era is over. The EOS lets the physics do the work."*
 
-🌿 **Tamaki-no-midori** — where photosynthesis meets thermodynamics.
+🌿 **Midori-no-Tamaki** — where photosynthesis meets thermodynamics.

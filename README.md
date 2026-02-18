@@ -188,9 +188,6 @@ midori-no-tamaki/
 ├── README.md               ← you are here
 ├── LICENSE                  ← MIT
 ├── eos_sensor.py            ← soft sensor module (zero dependencies)
-├── FACTSHEET.md             ← detailed technical reference
-├── paper/
-│   └── draft_v6_bej.md      ← manuscript (BEJ submission)
 ├── raw_data/
 │   ├── ph10_with_SAI.csv    ← 1,808 PI curves with SAI
 │   ├── ph10_extended.csv    ← extended parameter table

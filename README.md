@@ -1,4 +1,4 @@
-# 🌿 Tamaki-no-midori（環の緑）
+# 🌿 Midori-no-Tamaki
 
 **Equation of State for Photosynthesis–Irradiance Curves**
 

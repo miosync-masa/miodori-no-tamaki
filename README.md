@@ -216,7 +216,7 @@ If you use this code or the EOS framework:
   title   = {A sensing-ready equation of state for photoinhibition:
              predicting {PI} curves from $\alpha$, $P_{\max}$,
              and a stress adaptation index},
-  author  = {Iizumi, Masamichi and Iizumi, Tamaki},
+  author  = {Iizumi, Masamichi},
   journal = {Biochemical Engineering Journal},
   year    = {2026},
   note    = {Submitted}
@@ -226,8 +226,6 @@ If you use this code or the EOS framework:
 ## Authors
 
 **Masamichi Iizumi** —  Miosync, Inc.
-**Tamaki Iizumi** —  Miosync, Inc.
-
 ---
 
 *"The measure-then-fit era is over. The EOS lets the physics do the work."*

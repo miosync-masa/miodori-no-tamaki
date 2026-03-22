@@ -1,0 +1,18 @@
+# Table 3: Cross-species comparison of net productivity vs dark-period temp
+# Source: Tanaka et al. (2020) Algal Research 52: 102132
+#
+species,strain,indoor_outdoor,day_temp_C,dark_temp_C,net_prod_g_L_d,net_prod_sd,biomass_conc_g_L,LD_cycle,source
+H_lacustris,ZY-18,Indoor,28,8,0.09,,0.4,12:12,Wan2014
+H_lacustris,ZY-18,Indoor,28,13,0.12,,0.4,12:12,Wan2014
+H_lacustris,ZY-18,Indoor,28,18,0.13,,0.4,12:12,Wan2014
+H_lacustris,ZY-18,Indoor,28,23,0.14,,0.4,12:12,Wan2014
+H_lacustris,ZY-18,Indoor,28,28,0.17,,0.4,12:12,Wan2014
+H_lacustris,ZY-18,Indoor,28,33,0.09,,0.4,12:12,Wan2014
+T_suecica,,Outdoor,20,10,0.26,0.04,0.6,12:12,Michels2014
+T_suecica,,Outdoor,20,15,0.30,0.05,0.6,12:12,Michels2014
+T_suecica,,Outdoor,20,20,0.29,0.05,0.6,12:12,Michels2014
+A_platensis,NIES-39,Indoor,35,10,0.13,0.03,0.4,12:12,Tanaka2020
+A_platensis,NIES-39,Indoor,35,15,0.13,0.03,0.4,12:12,Tanaka2020
+A_platensis,NIES-39,Indoor,35,25,0.19,0.04,0.4,12:12,Tanaka2020
+A_platensis,NIES-39,Indoor,35,30,0.19,0.04,0.4,12:12,Tanaka2020
+A_platensis,NIES-39,Indoor,35,35,0.18,0.02,0.4,12:12,Tanaka2020

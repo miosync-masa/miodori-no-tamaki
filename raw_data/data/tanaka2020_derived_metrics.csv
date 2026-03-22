@@ -1,0 +1,18 @@
+# Derived metrics and key findings from Tanaka et al. (2020)
+#
+metric,value,unit,condition,notes
+permissible_dark_temp_range,25-35,degC,A_platensis,no significant productivity difference
+productivity_loss_at_10C,30,%,vs_25C,net productivity reduction
+productivity_loss_at_15C,30,%,vs_25C,net productivity reduction
+net_prod_ratio_25v10,1.47,fold,,17.1/11.6 g m-2 d-1
+respiration_Q10_approx,2.8,fold,10-35C,from regression slope
+photosynthetic_recovery_35C,104,%,Jensen1993,full recovery after 1800 umol photoinhibition
+photosynthetic_recovery_20C,21.3,%,Jensen1993,severe inhibition of repair at low T
+D1_repair_inhibited_by_low_T,yes,,Jensen1993_ref19,dark-time recovery delayed at low T
+protein_downregulation_15v30,16_of_18,proteins,Li2016_ref38,photosynthesis-related proteins
+optimal_light_temp,35,degC,NIES-39,
+PBR_volume,1,L,,cylindrical glass
+PBR_irradiance,300,umol_m-2_s-1,,LED white
+LD_cycle,12:12,h:h,,
+biomass_maintained,0.400,g_L-1,,semicontinuous
+N_source,NaNO3,,2500_mg_L-1,modified SOT medium

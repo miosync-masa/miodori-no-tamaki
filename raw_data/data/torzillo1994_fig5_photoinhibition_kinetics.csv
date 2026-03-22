@@ -1,0 +1,30 @@
+# Fig 5: Photoinhibition kinetics at different temperatures
+# Source: Torzillo & Vonshak (1994) Biomass & Bioenergy 6(6): 399-403
+# Cells grown at 30C, equilibrated 15min at test temp
+# Exposed to HPFD = 2500 umol m-2 s-1
+# O2 evolution measured at 35C, 160 umol m-2 s-1
+# Values: % of control (pre-exposure activity)
+# KEY DATA FOR beta(T) AND kd/kr MODELING!
+#
+temp_C,time_min,pct_activity_remaining,notes
+25,0,100,pre-exposure
+25,10,80,approximate_from_fig5
+25,20,65,approximate_from_fig5
+25,30,50,approximate_from_fig5
+25,40,38,approximate_from_fig5
+25,50,28,approximate_from_fig5
+25,60,22,after_1h_78pct_inhibition
+35,0,100,pre-exposure_optimal_temp
+35,10,88,approximate_from_fig5
+35,20,75,approximate_from_fig5
+35,30,65,approximate_from_fig5
+35,40,55,approximate_from_fig5
+35,50,50,approximate_from_fig5
+35,60,45.6,after_1h_54.4pct_inhibition
+40,0,100,pre-exposure_above_optimal
+40,10,85,approximate_from_fig5
+40,20,72,approximate_from_fig5
+40,30,60,approximate_from_fig5
+40,40,50,approximate_from_fig5
+40,50,43,approximate_from_fig5
+40,60,39,after_1h_61pct_inhibition

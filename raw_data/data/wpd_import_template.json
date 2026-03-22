@@ -1,0 +1,19 @@
+{
+  "_comment": "WebPlotDigitizer export template",
+  "_usage": "1. Open paper PDF in WebPlotDigitizer (https://apps.automeris.io/wpd/)",
+  "_usage2": "2. Digitize each temperature's PI curve separately",
+  "_usage3": "3. Export as JSON, name files like: wpd_LV1994_25C.json",
+  "_usage4": "4. Run: python data/wpd_to_csv.py data/wpd_*.json",
+  "version": [4, 2],
+  "axesColl": [{
+    "name": "PI_curve",
+    "type": "XY",
+    "calibration": {
+      "_note": "Set X=Irradiance (µmol m⁻²s⁻¹), Y=Photosynthesis rate"
+    }
+  }],
+  "datasetColl": [{
+    "name": "LV1994_25C",
+    "data": []
+  }]
+}

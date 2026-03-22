@@ -1,0 +1,15 @@
+# Table 3: Influence of temperature on protein and carbohydrate (sunset harvest)
+# Source: Torzillo et al. (1991) J. Appl. Phycol. 3: 103-109
+# Values: % of dry weight, harvested at end of daylight period
+#
+month,temp_C,protein_pct_DW,carbohydrate_pct_DW
+May,25,59.58,28.17
+May,35,66.76,22.75
+June,25,57.00,28.83
+June,35,65.34,22.40
+July,25,60.00,27.18
+July,35,64.45,24.58
+August,25,60.98,24.32
+August,35,66.71,20.81
+September,25,62.26,23.24
+September,35,67.85,17.98

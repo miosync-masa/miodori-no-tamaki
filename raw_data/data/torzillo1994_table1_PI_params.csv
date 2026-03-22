@@ -1,0 +1,13 @@
+# Table 1: PI parameters before/after photoinhibition
+# Source: Torzillo & Vonshak (1994) Biomass & Bioenergy 6(6): 399-403
+# DOI: 10.1016/0961-9534(94)00076-6
+# Species: Spirulina platensis M2 (from Mombolo Lake, Chad)
+# Photoinhibition: 45min at 2500 umol m-2 s-1, 35C
+# Measured at 35C, 160 umol m-2 s-1
+# Chloramphenicol added to prevent recovery during measurement
+#
+parameter,unit,control,photoinhibited,pct_change
+Pmax,umol_O2_mg-1_chl_h-1,800,600,-25
+Ik,umol_photons_m-2_s-1,430,610,+42
+alpha,umol_O2_[mg_chl_umol_photon_m-2_s-1]-1_h-1,1.915,1.0,-48
+R_dark,umol_O2_mg-1_chl_h-1,-20.5,-26.4,+29

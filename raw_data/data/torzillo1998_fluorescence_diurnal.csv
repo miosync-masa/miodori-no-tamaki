@@ -1,0 +1,15 @@
+# Diurnal Fv/Fm and DF/Fm data from Figures 2A and 2B
+# Source: Torzillo et al. (1998) J. Phycol. 34: 504-510
+# Values read from figure descriptions in text
+# SD: 1-5% for Fv/Fm, 3-5% for DF/Fm and qN
+#
+# Fv/Fm data (Fig 2A)
+parameter,condition,time_morning_0800,time_1300,time_afternoon_recovery,pct_depression_at_1300,pct_recovery_by_dusk
+Fv_Fm,LO-OT,0.58,0.52-0.55,0.58,5-10,100
+Fv_Fm,HO-OT,0.58,0.37,,35,80
+Fv_Fm,HO-LT,0.58,0.26,,55,63
+#
+# DF/Fm data (Fig 2B)
+DF_Fm,LO-OT,0.32,0.20,0.32,,100
+DF_Fm,HO-OT,0.32,0.13,,60,60
+DF_Fm,HO-LT,0.32,0.05,,84,40

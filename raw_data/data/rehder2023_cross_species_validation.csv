@@ -1,0 +1,30 @@
+# Cross-species validation of EOS-thermal framework
+# Source: Rehder et al. (2023) New Phytologist 239:1005-1013
+# Data: PANGAEA doi:10.1594/PANGAEA.960034
+# Species: Phaeodactylum tricornutum (diatom, eukaryote)
+# Temperatures: 6C and 15C (acclimated + acute shift)
+#
+# KEY RESULT: EOS-thermal structure validated in eukaryotic diatom
+#
+parameter,value_6C,value_15C,ratio_15over6,type,EOS_prediction,CONFIRMED
+alpha_acclimated,1.212,1.222,1.01,acclimated,temperature_independent,YES
+alpha_acute_shift,1.212,1.139,0.94,acute,temperature_independent,YES
+Pmax_acclimated_mean,74.0,90.1,1.22,acclimated,temperature_dependent,YES
+Pmax_acute_shift_mean,74.0,140.2,1.90,acute,strongly_T_dependent,YES
+Ik_acclimated_mean,50.7,78.5,1.55,acclimated,temperature_dependent,YES
+RO2_acclimated_mean,37.8,40.7,1.08,acclimated,temperature_dependent,WEAK
+Ea_acute_Pmax,47.5,kJ/mol,,derived,40-90_kJ/mol_range,YES
+Ea_literature_default,63.0,kJ/mol,,reference,0.65eV_universal,REFERENCE
+#
+# INDIVIDUAL ACUTE SHIFT DATA (6C acclimated -> measured at 15C)
+sample,Pmax_at_6C,Pmax_at_15C,ratio
+6_A,73.8,135.6,1.84
+6_B,78.0,135.0,1.73
+6_D,71.9,135.9,1.89
+6_E,72.1,154.3,2.14
+#
+# INDIVIDUAL ACUTE SHIFT DATA (15C acclimated -> measured at 6C)
+sample,Pmax_at_15C,Pmax_at_6C,ratio
+15_A,97.2,42.1,0.43
+15_B,77.1,36.8,0.48
+15_C,96.0,37.1,0.39

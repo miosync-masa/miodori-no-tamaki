@@ -1,0 +1,11 @@
+# Table 4: Light-dark cycle dynamics at low biomass (710 mg/L)
+# Source: Torzillo et al. (1991) J. Appl. Phycol. 3: 103-109
+# 4-day experiment August, 35C day/20C night, NO3 N-source
+# Sunlight: 21.35 MJ m-2 d-1, biomass conc: 710 mg/L
+# Values: mg/L ash-free dry weight (mean +/- SD, n=4)
+#
+component,sunrise_mg_L,sunrise_sd,sunset_mg_L,sunset_sd,next_sunrise_mg_L,next_sunrise_sd
+total_biomass,686,27,1165,42,998,50
+protein,486,30,666,26,707,22
+carbohydrate,133,9,394,19,195,24
+lipid,66,6,105,6,96,13

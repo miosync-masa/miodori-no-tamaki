@@ -1,0 +1,34 @@
+# Known physiological parameters for Spirulina/Arthrospira
+# Compiled from literature (see SOURCES.md for full references)
+#
+source_id,species,strain,parameter,value,unit,temp_C,condition,notes
+# === Torzillo et al. 1991a (PBR outdoor data) ===
+T1991a,S_platensis,,T_opt_growth,35,degC,,outdoor_PBR,optimal for net productivity
+T1991a,S_platensis,,T_opt_respiration,45,degC,,outdoor_PBR,dark respiration maximum
+T1991a,S_platensis,,night_loss_pct,5.0,%,35,optimal_density,at 1290 mg/L
+T1991a,S_platensis,,night_loss_pct,7.6,%,25,optimal_density,suboptimal temp
+T1991a,S_platensis,,night_loss_pct,14.0,%,25,low_density,at 710 mg/L max loss
+T1991a,S_platensis,,night_loss_pct,5.1,%,25,high_density,at 2169 mg/L
+T1991a,S_platensis,,carbohydrate_pct,22.40,%DW,35,June,dry weight basis
+T1991a,S_platensis,,carbohydrate_pct,28.83,%DW,25,June,stress accumulation
+T1991a,S_platensis,,productivity_ratio,1.23,ratio,35vs25,,35C/25C net productivity
+T1991a,S_platensis,,P_residual_at_extreme,0.30,fraction,,extreme_T,30% of Pmax retained
+T1991a,S_platensis,,optimal_density,1290,mg/L,35,,max net growth
+# === Oguchi et al. 1987 (CELSS) ===
+O1987,S_platensis,,O2_purity,46,%,,CELSS_PBR,hollow fiber extraction
+O1987,S_platensis,,O2_flow_rate_min,100,mL/min,,CELSS_PBR,
+O1987,S_platensis,,O2_flow_rate_max,150,mL/min,,CELSS_PBR,
+O1987,S_platensis,,PBR_volume,6,L,,CELSS_PBR,
+# === D1 repair kinetics (Synechocystis PCC 6803, comparative) ===
+D1_SYN,Synechocystis,PCC6803,photoinhibition_I,600,umol_m2_s,20-40,PAM,Fv/Fm decline
+D1_SYN,Synechocystis,PCC6803,FtsH_high_activity_range,30-40,degC,,in_vivo,rapid D1 clearance
+D1_SYN,Synechocystis,PCC6803,FtsH_low_activity_T,20,degC,,in_vivo,delayed D1 proteolysis
+# === Arthrospira UV-B studies ===
+UVB,A_platensis,439,O2_loss_180min_UVB,56,%,,UV-B,simultaneous with D1 loss
+UVB,A_platensis,D-0083,D1_loss_180min_UVB,56,%,,UV-B,western blot quantified
+UVB,A_platensis,,lincomycin_effect,accelerated,,UV-B+linco,repair block → faster decline
+UVB,A_platensis,,PAR_protection,near_complete,,UV-B+PAR,visible light rescues D1
+# === PDB structural data ===
+STRUCT,Arthrospira,FACHB-439,PDB_id,8WQL,,,Cryo-EM,PBS-PSII supercomplex
+STRUCT,Arthrospira,FACHB-439,resolution,3.5,Angstrom,,Cryo-EM,
+STRUCT,Arthrospira,FACHB-439,subunit_count,445,subunits,,Cryo-EM,hetero 445-mer

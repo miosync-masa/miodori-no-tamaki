@@ -1,0 +1,21 @@
+# Table 1: Influence of temperature on night biomass loss
+# Source: Torzillo et al. (1991) J. Appl. Phycol. 3: 103-109
+# DOI: 10.1007/BF00003691
+# Species: Spirulina platensis strain M2
+# Location: Florence, Italy (43.8N, 11.3E)
+# Reactor: 51L tubular PBR, semicontinuous, NH4+ N-source
+# Biomass maintained at ~1100 mg/L
+# n=26 determinations per month
+#
+month,sunlight_MJ_m2_d,night_hours,temp_day_C,temp_night_C,night_loss_pct_DW,night_loss_pct_daylight_prod
+May,18,9.3,25,25,6.5,22.0
+May,18,9.3,35,35,5.3,19.6
+June,22,8.6,25,25,10.3,31.5
+June,22,8.6,35,35,6.0,16.0
+July,24.5,8.9,25,25,8.6,24.3
+July,24.5,8.9,35,35,6.0,14.8
+July,24.5,8.9,35,25,4.1,10.4
+August,20,10.0,25,25,6.7,19.2
+August,20,10.0,35,35,3.8,10.0
+September,16,11.5,25,25,5.9,19.8
+September,16,11.5,35,35,3.6,11.8

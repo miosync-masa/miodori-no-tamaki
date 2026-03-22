@@ -1,0 +1,30 @@
+# Derived metrics from Torzillo & Vonshak (1994)
+# THE KEY PAPER for EOS thermal extension!
+#
+metric,value,unit,condition,notes
+T_opt_photosynthesis,35,degC,,gross O2 evolution maximum
+T_opt_respiration,45,degC,,dark respiration peak
+T_min_tested,10,degC,,28% of Pmax retained
+T_max_tested,50,degC,,23% of Pmax retained
+P_at_10C,28,%_of_optimum,,remarkably resilient
+P_at_50C,23,%_of_optimum,,
+respiration_equation,R=0.771*exp(0.0616*T),umol_O2_mg_chl_h,,exponential fit
+respiration_Ea,48.8,kJ_mol-1,,Arrhenius activation energy
+respiration_Q10,1.85,dimensionless,20-45C,
+resp_to_photo_ratio_15C,1.0,%,,very low
+resp_to_photo_ratio_45C,4.6,%,,still relatively low
+photoinhibition_1h_25C,78,%_inhibition,2500umol_m-2_s-1,WORST - cold + HPFD
+photoinhibition_1h_35C,54.4,%_inhibition,2500umol_m-2_s-1,optimal temp = best protection
+photoinhibition_1h_40C,61,%_inhibition,2500umol_m-2_s-1,above optimal also worse
+alpha_control,1.915,umol_O2_[mg_chl_umol_photon]-1_h-1,35C,quantum yield
+alpha_photoinhibited,1.0,umol_O2_[mg_chl_umol_photon]-1_h-1,35C_45min_2500umol,48% decrease!
+alpha_decrease_pct,48,%,,alpha drops MORE than Pmax
+Pmax_control,800,umol_O2_mg-1_chl_h-1,35C,
+Pmax_photoinhibited,600,umol_O2_mg-1_chl_h-1,35C_45min_2500umol,25% decrease
+Pmax_decrease_pct,25,%,,Pmax drops LESS than alpha
+Ik_control,430,umol_m-2_s-1,35C,onset of saturation
+Ik_photoinhibited,610,umol_m-2_s-1,35C_45min,Ik INCREASES 42% under photoinhibition
+R_dark_increase_photoinhibited,29,%,,higher respiration after photoinhibition
+growth_temp,30,degC,,batch culture conditions
+growth_light,100-120,umol_m-2_s-1,,center of tube
+HPFD_treatment,2500,umol_m-2_s-1,,photoinhibition exposure

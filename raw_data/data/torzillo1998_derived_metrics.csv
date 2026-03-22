@@ -1,0 +1,26 @@
+# Derived metrics from Torzillo et al. (1998)
+# Source: Torzillo et al. (1998) J. Phycol. 34: 504-510
+#
+metric,value,unit,condition,notes
+Fv_Fm_morning,0.58,dimensionless,all_cultures,dark-adapted 15min + DCMU
+Fv_Fm_depression_LO_OT,5-10,%,low_O2_35C,midday vs morning
+Fv_Fm_depression_HO_OT,35,%,high_O2_35C,midday vs morning
+Fv_Fm_depression_HO_LT,55,%,high_O2_25C,midday vs morning
+DF_Fm_morning,0.32,dimensionless,all_cultures,effective PSII yield
+DF_Fm_depression_HO_OT,60,%,high_O2_35C,midday vs morning
+DF_Fm_depression_HO_LT,84,%,high_O2_25C,midday vs morning - MASSIVE
+productivity_loss_HO_OT,33,%,high_O2_35C,vs LO-OT control
+productivity_loss_HO_LT,60,%,high_O2_25C,vs LO-OT control
+Je_loss_HO_OT,32,%,high_O2_35C,integrated ETR vs LO-OT
+Je_loss_HO_LT,61,%,high_O2_25C,integrated ETR vs LO-OT
+Je_max_ratio_midday,1.8,fold,LO-OT,midday vs morning
+Je_ratio_HO_LT_vs_LO_OT_1400,0.25,fold,high_O2_25C,4x lower at 1400h
+Je_ratio_HO_LT_vs_HO_OT_1400,0.38,fold,high_O2_25C,2.6x lower at 1400h
+O2_uncontrolled_peak,70-80,mg_L-1,HO cultures,midday peak
+O2_controlled,22,mg_L-1,LO culture,maintained by N2 sparging
+chl_content_start_HO_LT,1.54,%_w_w,high_O2_25C,morning
+chl_content_end_HO_LT,1.16,%_w_w,high_O2_25C,evening - NO net chl synthesis
+max_PFD,1750,umol_m-2_s-1,,summer sunny day
+initial_biomass,0.65,g_DW_L-1,,all cultures
+circulation_speed,0.46,m_s-1,,Reynolds ~11000
+tube_transit_time,50,s,,inlet to outlet

@@ -1,0 +1,17 @@
+# Derived metrics from Kobayashi & Fujita (1996)
+#
+metric,value,unit,condition,notes
+pH_lethal_threshold,12,pH_units,,growth stops and cells die (whiten)
+pH_growth_stop,12,pH_units,,HCO3- -> CO3-- transition complete
+pH_optimal_range,8.5-10,pH_units,,HCO3- > 50pct of DIC
+pH_control_improvement,1.83,fold,2.2/1.2,vs uncontrolled
+pH_plus_N_improvement,3.5,fold,4.2/1.2,vs uncontrolled
+N_depletion_cell_conc,2.2,g_L-1,,growth stops when NO3=0
+N_threshold_for_decline,3.5,g_L-1,,above this specific_NO3 decreases
+light_limitation_onset,3.5,g_L-1,,mutual shading becomes dominant
+max_achieved_density,4.2,g_L-1,,with pH + N control
+CO2_gas_concentration,5,%,,mixed with air for pH control
+medium_NaHCO3,16.8,g_L-1,,Zarrouk medium
+initial_NO3,1.8,g_L-1,,reduced to 0.4-0.6 after consumption
+temperature,25,degC,,constant (suboptimal for growth!)
+irradiance,250,uE_m-2_s-1,,glass tube surface

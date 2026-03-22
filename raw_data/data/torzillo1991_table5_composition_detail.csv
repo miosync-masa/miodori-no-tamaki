@@ -1,0 +1,12 @@
+# Table 5: Ash-free biomass composition at sunrise vs sunset
+# Source: Torzillo et al. (1991) J. Appl. Phycol. 3: 103-109
+# Low biomass (710 mg/L), 35C day/20C night, NO3 N-source
+# Values: % of ash-free dry weight (mean +/- SD, n=4)
+#
+component,sunrise_pct,sunrise_sd,sunset_pct,sunset_sd
+protein,70.90,2.37,57.14,0.69
+carbohydrate,19.48,1.48,33.81,0.66
+lipid,9.61,0.9,9.05,0.61
+C,50.91,0.29,49.53,0.32
+H,7.67,0.13,7.52,0.18
+N,11.34,0.38,9.14,0.11

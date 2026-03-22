@@ -1,0 +1,15 @@
+# Fig 2: Dark respiration (O2 uptake) vs temperature
+# Source: Torzillo & Vonshak (1994) Biomass & Bioenergy 6(6): 399-403
+# Equation: R = 0.771 * exp(0.0616 * T)
+# Ea = 48.8 kJ/mol (Arrhenius), Q10 = 1.85 (20-45C)
+# Respiration drops to ~zero at 50C and 15C
+# Unit: umol O2 mg-1 chl h-1
+#
+temp_C,respiration_umol_O2_mg_chl_h,notes
+15,1.8,approximate_from_fig2
+20,2.6,approximate_from_fig2
+25,3.5,approximate_from_fig2
+30,5.0,approximate_from_fig2
+35,7.2,approximate_from_fig2
+40,10.0,approximate_from_fig2
+45,14.0,approximate_from_fig2_peak

@@ -1,0 +1,20 @@
+# Fig 4: PI curve - control vs photoinhibited
+# Source: Torzillo & Vonshak (1994) Biomass & Bioenergy 6(6): 399-403
+# Control: normal cells. Photoinhibited: 45min at 2500 umol, 35C
+# Chloramphenicol added. Measured at 35C.
+# Unit: umol O2 mg-1 chl h-1 (net O2 evolution rate)
+# APPROXIMATE values read from Fig 4
+#
+PFD_umol_m2_s,control_net_O2,photoinhibited_net_O2
+0,-20.5,-26.4
+50,50,20
+100,150,60
+200,350,150
+300,550,250
+475,700,350
+600,750,420
+800,780,480
+950,790,530
+1200,780,560
+1425,770,570
+1900,760,580

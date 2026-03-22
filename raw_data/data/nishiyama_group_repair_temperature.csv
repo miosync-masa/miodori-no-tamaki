@@ -1,0 +1,45 @@
+# Independent validation data for kr(T) temperature dependence
+# Sources: Allakhverdiev & Murata (2004) BBA 1657:23-32
+#          Ueno et al. (2016) Plant Cell Physiol 57:2417-2426
+# Organism: Synechocystis sp. PCC 6803
+#
+# === kd (photodamage) is TEMPERATURE INDEPENDENT ===
+# Allakhverdiev 2004 Table 1 (with lincomycin, 2000 uE/m2/s)
+temp_C,kd_min-1,kd_SE,source
+10,0.201,0.008,Allakhverdiev2004_Table1
+18,0.202,0.007,Allakhverdiev2004_Table1
+25,0.197,0.008,Allakhverdiev2004_Table1
+34,0.200,0.008,Allakhverdiev2004_Table1
+#
+# === kr (repair) STRONGLY TEMPERATURE DEPENDENT ===
+# Allakhverdiev 2004 Fig 5C: initial rate of recovery at 300 uE
+temp_C,kr_relative_pct,kr_abs_min-1,source,notes
+10,0,0.000,Allakhverdiev2004_Fig5C,completely_inhibited
+18,20,0.002,Allakhverdiev2004_Fig5C,estimated_from_figure
+25,50,0.005,Allakhverdiev2004_Fig5C,estimated_from_figure
+34,100,0.010,Allakhverdiev2004_Fig5C,max_rate=0.01_min-1
+#
+# === kr at HIGH temperatures (Ueno 2016) ===
+# Recovery from photoinhibition under 200 uE after 3000 uE damage
+temp_C,PSII_recovery_at_120min_pct,repair_status,source
+20,25,slow_recovery,Ueno2016_Fig3
+30,25,baseline_recovery,Ueno2016_Fig3
+35,50,enhanced,Ueno2016_Fig3
+38,80,maximum_recovery,Ueno2016_Fig3
+40,65,still_enhanced,Ueno2016_Fig3
+42,45,declining,Ueno2016_Fig3
+44,10,repair_abolished_denaturation,Ueno2016_Fig3
+#
+# === D1 protein synthesis rate vs temperature ===
+# Allakhverdiev 2004 Fig 8B: 35S-Met incorporation into D1
+temp_C,D1_synthesis_relative_pct,source
+10,0,Allakhverdiev2004_Fig8B
+18,15,Allakhverdiev2004_Fig8B
+25,50,Allakhverdiev2004_Fig8B
+34,100,Allakhverdiev2004_Fig8B
+#
+# Ueno 2016 Fig 5B: D1 synthesis (relative to 30C)
+temp_C,D1_synthesis_relative_to_30C,source
+20,0.49,Ueno2016_Fig5B
+30,1.00,Ueno2016_Fig5B
+38,1.31,Ueno2016_Fig5B

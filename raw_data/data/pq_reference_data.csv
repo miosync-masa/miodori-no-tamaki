@@ -1,0 +1,10 @@
+# Photosynthetic Quotient (PQ = O2/CO2) reference values
+# For Phase 2: PQ as SAI proxy
+#
+source,species,N_source,PQ_value,PQ_sd,condition,notes
+theoretical,generic,NH4,1.0,,baseline,sugar synthesis only (CO2+H2O->CH2O+O2)
+theoretical,generic,NO3,1.3,,baseline,extra e- for NO3 reduction
+literature,C_vulgaris,NO3,1.29,0.15,normal,measured in culture
+theoretical,generic,lipid_synthesis,1.4,,high_lipid,lipid has higher reduction state
+stress,generic,,elevated,,photoinhibition,Mehler + FLV electron sinks
+stress,generic,,variable,,temperature_stress,CEF activation shifts ATP/NADPH ratio

@@ -1,0 +1,12 @@
+# Table 1: Effect of O2 concentration and temperature on productivity
+# Source: Torzillo et al. (1998) J. Phycol. 34: 504-510
+# DOI: 10.1046/j.1529-8817.1998.340504.x
+# Species: Spirulina platensis strain M2
+# Reactor: 51L tubular PBR, 0.65 g/L initial biomass
+# Summer, sunny days, max PFD = 1750 umol m-2 s-1
+# Night temp all cultures: 25C
+#
+condition,O2_mg_L,O2_sd,temp_day_C,chl_synthesis_mg_L_d,chl_sd,biomass_synthesis_mg_L_d,biomass_sd,Je_integrated_M_photons_m2_d
+LO-OT,22,2,35,6.02,0.18,570,28,11.1
+HO-OT,60,19,35,2.57,0.05,380,18,7.5
+HO-LT,58,16,25,0.22,0.01,230,10,4.3

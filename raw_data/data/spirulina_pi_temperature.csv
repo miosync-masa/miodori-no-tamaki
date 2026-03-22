@@ -1,0 +1,23 @@
+# Spirulina/Arthrospira PI curve data at multiple temperatures
+# Format compatible with piCurve / Ph10 fitting pipeline
+# Source: Digitized from published figures (see SOURCES.md)
+#
+# Columns:
+#   source_id   - Reference key (e.g., LV1994 = Lu & Vonshak 1994)
+#   species     - Species/strain name
+#   temp_C      - Culture temperature (°C)
+#   irradiance  - Photon flux density (µmol m⁻² s⁻¹)
+#   P_gross     - Gross photosynthesis rate (µmol O₂ mg⁻¹ Chl h⁻¹) or relative
+#   P_net       - Net photosynthesis rate (if available)
+#   method      - Measurement method (O2_electrode, PAM, 14C, etc.)
+#   notes       - Additional notes
+#
+source_id,species,temp_C,irradiance,P_gross,P_net,method,notes
+# === PLACEHOLDER: Data to be digitized from Lu & Vonshak (1994) ===
+# LV1994,S_platensis,25,0,0.0,,O2_electrode,dark
+# LV1994,S_platensis,25,50,,,O2_electrode,
+# LV1994,S_platensis,25,100,,,O2_electrode,
+# ... (to be filled by digitizing Fig. X)
+# LV1994,S_platensis,35,0,0.0,,O2_electrode,dark
+# LV1994,S_platensis,35,50,,,O2_electrode,
+# ...

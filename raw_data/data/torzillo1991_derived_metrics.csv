@@ -1,0 +1,24 @@
+# Derived metrics from Torzillo et al. (1991)
+# Calculated from paper text and tables
+#
+metric,value,unit,condition,notes
+T_opt_photosynthesis,35,degC,,optimal for net productivity
+T_max_dark_respiration,45,degC,,respiration peaks higher than photosynthesis
+P_residual_at_resp_inhibition,30,%_of_optimum,,photosynthesis at 30% when respiration fully inhibited
+productivity_ratio_35v25,1.23,ratio,,23% higher net productivity at 35C over 24h cycle
+daytime_prod_ratio_35v25,1.14,ratio,,14% higher daytime production at 35C
+night_loss_optimal_range,4-6,%_DW,35C_optimal_density,at optimal conditions summer
+night_loss_as_pct_daylight_optimal,10-16,%_daylight_prod,35C_optimal_density,
+night_loss_max,14,%_DW,710mg_L_35C_day,low biomass high light stress
+night_loss_max_as_daylight,35,%_daylight_prod,710mg_L_35C_day,
+optimal_biomass_conc,1290,mg_L,35C,highest net productivity
+optimal_growth_rate,0.23,d-1,1290mg_L,at optimal density
+carbon_flow_dark_ratio,0.27,dimensionless,,C_to_protein / C_from_carbohydrate in dark
+night_protein_synthesis_pct,18.5,%_of_total,,protein synthesized during night
+N_source_experiment_main,NH4,,May-Sep,ammonia-based medium
+N_source_experiment_Aug,NO3,,Aug_4day,nitrate-based for biomass conc experiment
+reactor_volume,51,L,,each PBR working volume
+flow_day,0.46,m_s-1,,circulation speed daytime
+flow_night,0.2,m_s-1,,circulation speed nighttime
+pH_maintained,9.6,,,automatic CO2 addition
+DO_range,8-20,mg_L-1,,air bubbling through porous candles

@@ -1,0 +1,36 @@
+# Arrhenius parameters from D1 damage-repair fitting
+# Source: Torzillo & Vonshak (1994) Fig.5, 2500 umol m-2 s-1
+# Model: dA/dt = -kd*I*A + kr*(1-A)
+# Fitted: 2025-03-21
+#
+parameter,value,unit,notes
+Ea_repair,240.1,kJ_mol-1,HIGH - multi-step enzymatic pathway
+Ea_damage,~0,kJ_mol-1,~zero - photophysical process
+delta_Ea,240.1,kJ_mol-1,MASSIVE asymmetry confirmed
+kd_mean,7.53e-06,min-1_per_umol_m-2_s-1,constant across 25-40C (CV=20%)
+kr0,1.4119e+38,min-1,pre-exponential (cold branch Arrhenius)
+#
+# Per-temperature fitted values
+kr_25C,0.000121,min-1,repair nearly stopped
+kr_35C,0.002797,min-1,optimal repair
+kr_40C,0.001643,min-1,DROPS - denaturation onset!
+kd_25C,9.60e-06,min-1_per_umol,
+kd_35C,6.03e-06,min-1_per_umol,
+kd_40C,6.96e-06,min-1_per_umol,
+K_25C,199.0,dimensionless,repair collapsed
+K_35C,5.39,dimensionless,optimal balance (minimum K)
+K_40C,10.60,dimensionless,denaturation re-worsens
+A_inf_25C,0.005,fraction,essentially zero steady-state PSII
+A_inf_35C,0.157,fraction,~16% survive at 2500umol
+A_inf_40C,0.086,fraction,less than 35C
+R2_25C,0.9955,dimensionless,
+R2_35C,0.9967,dimensionless,
+R2_40C,0.9982,dimensionless,
+#
+# Physical interpretation
+kr_ratio_35v25,23.2,fold,repair 23x faster at optimal
+kr_ratio_40v35,0.587,fold,denaturation reduces repair
+kd_CV,20.1,%,confirms photophysical (T-independent)
+T_opt_repair,35,degC,K(T) minimum
+cold_branch_valid,T<38,degC,Arrhenius valid range
+hot_branch_onset,~40,degC,needs denaturation term

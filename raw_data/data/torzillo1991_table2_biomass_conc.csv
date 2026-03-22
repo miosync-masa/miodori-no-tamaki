@@ -1,0 +1,10 @@
+# Table 2: Influence of biomass concentration on productivity and night loss
+# Source: Torzillo et al. (1991) J. Appl. Phycol. 3: 103-109
+# 4-day experiment in August, temp 35C day / 20C night
+# Sunlight: 21.35 +/- 1.3 MJ m-2 d-1
+# N-source: Nitrate, Flow: 0.2 m/s constant
+#
+biomass_conc_mg_L,daylight_prod_mg_L,net_prod_mg_L,night_loss_pct_DW,night_loss_pct_daylight_prod
+710,478,315,14.0,35.0
+1290,356,320,5.1,10.0
+2169,269,253,5.1,6.0

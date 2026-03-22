@@ -1,0 +1,12 @@
+# C:N atomic ratio vs dark-period temperature (from Fig. 5)
+# Source: Tanaka et al. (2020) Algal Research 52: 102132
+# Sampled at end of dark period
+# Regression: y = -0.0722x + 6.8079 (R2=0.836)
+# Reference C:N for A. platensis at 25C: 5.1 (Gordillo 1998)
+#
+dark_temp_C,CN_ratio,notes
+10,6.24,high_C_low_protein_synthesis
+15,5.70,approximate_from_figure
+25,5.00,approximate_from_figure
+30,4.50,approximate_from_figure
+35,4.03,low_C_high_protein_synthesis

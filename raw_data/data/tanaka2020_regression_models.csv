@@ -1,0 +1,6 @@
+# Regression models from Tanaka et al. (2020)
+# These are DIRECTLY usable in EOS thermal extension!
+#
+model,equation,slope,intercept,R2,N,P,x_variable,x_unit,y_variable,y_unit,x_range
+respiration_vs_temp,y=0.168x-0.721,0.168,-0.721,0.968,5,<0.01,dark_period_temp,degC,respiration_rate,mg-O2_gDW-1_h-1,10-35
+CN_ratio_vs_temp,y=-0.0722x+6.8079,-0.0722,6.8079,0.836,5,<0.05,dark_period_temp,degC,C_N_atomic_ratio,dimensionless,10-35

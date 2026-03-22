@@ -1,0 +1,16 @@
+# Fig 1: Gross O2 evolution rate vs temperature
+# Source: Torzillo & Vonshak (1994) Biomass & Bioenergy 6(6): 399-403
+# Measured at PFD = 160 umol m-2 s-1 after 15min equilibration
+# Unit: umol O2 mg-1 chl h-1
+# THIS IS Pmax(T) AT SUBSATURATING LIGHT!
+#
+temp_C,gross_O2_umol_mg_chl_h,pct_of_optimum,notes
+10,126,28,minimum_tested
+15,180,40,approximate_from_fig1
+20,270,60,approximate_from_fig1
+25,360,80,approximate_from_fig1
+30,405,90,approximate_from_fig1
+35,450,100,OPTIMAL
+40,405,90,approximate_from_fig1
+45,360,80,approximate_from_fig1
+50,103.5,23,maximum_tested

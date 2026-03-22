@@ -1,0 +1,11 @@
+# Dark respiration rate vs temperature (from Fig. 6)
+# Source: Tanaka et al. (2020) Algal Research 52: 102132
+# Measured at end of dark period in glass vials
+# Regression: y = 0.168x - 0.721 (R2=0.968)
+#
+dark_temp_C,respiration_rate_mgO2_gDW_h,notes
+10,0.900,extrapolated_from_regression
+15,1.80,approximate_from_figure
+25,3.48,approximate_from_figure
+30,4.32,approximate_from_figure
+35,4.97,approximate_from_figure

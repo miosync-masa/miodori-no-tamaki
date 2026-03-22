@@ -1,0 +1,10 @@
+# Kobayashi & Fujita (1996) Kagaku Kogaku Ronbunshu 22(1): 56-59
+# Cultivation of Spirulina platensis controlling pH and nitrate
+# Species: S. platensis NIES-39, Zarrouk medium (16.8g/L NaHCO3)
+# Light: 250 uE/m2/s, Temp: 25C, Glass tube reactor 1000mL
+# KEY DATA FOR beta_carbon(CO2, pH) CHANNEL
+#
+condition,pH_range,nitrate_control,max_cell_conc_g_L,growth_stopped_by,culture_hours,notes
+pH_uncontrolled,8.95->12+,no,1.2,pH12_CO3_dominates_HCO3_gone,168,dead at 200h whitened
+pH_controlled,8.5-10,no,2.2,nitrate_depletion,250,CO2_gas_5pct_air
+pH_controlled+nitrate,8.5-10,yes_2.0g_L,4.2,light_limitation_mutual_shading,350,2x_nitrate_addition

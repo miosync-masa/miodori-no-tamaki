@@ -8,7 +8,7 @@ matplotlib.use('Agg')
 # Midori-no-Tamaki: Feedback loop visualization
 #
 # State variables: DIC(t), Biomass(t)
-# Derived: pH(t), Ci(t), beta_eff(t), growth_rate(t)
+# Derived: pH(t), Ci(t), b_env(t), growth_rate(t)
 ###############################################################################
 
 # === Physical Constants ===
@@ -79,7 +79,7 @@ def DIC_to_pH(DIC_mM, alkalinity_mM, T_C):
     return pH_guess
 
 # === Photosynthesis Model (EOS-based) ===
-def beta_thermal(T_C, Ea_r=63.0, T_opt=35.0, Tm=42.0, dT=3.0):
+def b_thermal_calc(T_C, Ea_r=63.0, T_opt=35.0, Tm=42.0, dT=3.0):
     """D1 repair capacity relative to optimal"""
     T_K = T_C + 273.15
     T_opt_K = T_opt + 273.15
@@ -92,7 +92,7 @@ def beta_thermal(T_C, Ea_r=63.0, T_opt=35.0, Tm=42.0, dT=3.0):
     
     return kr_ratio * denaturing
 
-def beta_carbon(pH, DIC_mM, T_C, Km_mM=0.5):
+def b_carbon_calc(pH, DIC_mM, T_C, Km_mM=0.5):
     """Carbon supply limitation (Michaelis-Menten on Ci_eff)"""
     _, alpha1, _ = carbonate_fractions(pH, T_C)
     Ci_eff = DIC_mM * alpha1  # HCO3- as primary C source
@@ -119,10 +119,10 @@ def photosynthesis_rate(I, T_C, pH, DIC_mM, biomass_gL, params):
     PCC = np.tanh(I_avg / Ik)
     
     # Temperature limitation
-    b_thermal = beta_thermal(T_C)
+    b_thermal = b_thermal_calc(T_C)
     
     # Carbon limitation
-    b_carbon = beta_carbon(pH, DIC_mM, T_C)
+    b_carbon = b_carbon_calc(pH, DIC_mM, T_C)
     
     # Effective rate = Pmax * PCC * min(b_thermal, b_carbon) * biomass
     b_eff = min(b_thermal, b_carbon)
@@ -301,7 +301,7 @@ print("Simulations complete!")
 # === Plotting ===
 fig, axes = plt.subplots(3, 2, figsize=(16, 14))
 fig.suptitle('Spirulina PBR Dynamic Simulation: Feedback Loop Behavior\n'
-             'β_eff = min(β_light, β_thermal, β_carbon)', 
+             'b_env = min(b_thermal, b_carbon); β_eff = β_ref/b_env', 
              fontsize=14, fontweight='bold', y=0.99)
 
 colors = {'s1': '#e74c3c', 's2': '#3498db', 's3': '#2ecc71', 's4': '#e67e22'}
@@ -348,14 +348,14 @@ ax.set_ylabel('DIC (mM)', fontsize=12)
 ax.set_title('C - Dissolved Inorganic Carbon', fontsize=12, fontweight='bold')
 ax.set_xlim(0, 300)
 
-# Panel D: beta_carbon vs beta_thermal
+# Panel D: b_carbon vs b_thermal
 ax = axes[1, 1]
 for key, res, c in [('s1', result_1, colors['s1']), ('s2', result_2, colors['s2']), 
                       ('s3', result_3, colors['s3']), ('s4', result_4, colors['s4'])]:
     ax.plot(res['t'], res['b_carbon'], color=c, linewidth=2, linestyle='-')
     ax.plot(res['t'], res['b_thermal'], color=c, linewidth=1.5, linestyle='--', alpha=0.6)
 ax.set_ylabel('β value', fontsize=12)
-ax.set_title('D - β_carbon (solid) vs β_thermal (dashed)', fontsize=12, fontweight='bold')
+ax.set_title('D - b_carbon (solid) vs b_thermal (dashed)', fontsize=12, fontweight='bold')
 ax.axhline(y=0.5, color='gray', linestyle=':', alpha=0.5)
 ax.text(5, 0.52, 'Bottleneck threshold', fontsize=8, color='gray')
 ax.set_xlim(0, 300)
@@ -371,13 +371,13 @@ for key, res, c, label in [('s1', result_1, colors['s1'], labels['s1']),
     is_carbon = res['b_carbon'] < res['b_thermal']
     
     ax.fill_between(res['t'], 0, 1, where=is_carbon, alpha=0.2, color='blue', 
-                    label='β_carbon dominant' if key=='s1' else '')
+                    label='b_carbon dominant' if key=='s1' else '')
     ax.fill_between(res['t'], 0, 1, where=~is_carbon, alpha=0.2, color='orange',
-                    label='β_thermal dominant' if key=='s1' else '')
+                    label='b_thermal dominant' if key=='s1' else '')
     ax.plot(res['t'], bottleneck, color=c, linewidth=2, label=label[:30])
 
 ax.set_xlabel('Time (hours)', fontsize=12)
-ax.set_ylabel('β_eff (bottleneck)', fontsize=12)
+ax.set_ylabel('b_env (bottleneck capacity)', fontsize=12)
 ax.set_title('E - Bottleneck Switching', fontsize=12, fontweight='bold')
 ax.legend(fontsize=7, loc='lower left')
 ax.set_xlim(0, 300)
@@ -422,8 +422,8 @@ for name, res, params in [
     print(f"\n  {name}:")
     print(f"    Max biomass: {max_bio:.2f} g/L")
     print(f"    Final pH: {final_pH:.1f}")
-    print(f"    Min β_carbon: {min_bcarbon:.3f}")
-    print(f"    β_thermal: {btherm:.3f}")
+    print(f"    Min b_carbon: {min_bcarbon:.3f}")
+    print(f"    b_thermal: {btherm:.3f}")
     bottleneck = "CARBON" if min_bcarbon < btherm else "THERMAL"
     print(f"    Bottleneck: {bottleneck}")
 

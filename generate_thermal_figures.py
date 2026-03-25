@@ -137,7 +137,7 @@ def fig_cross_species_validation():
 
 CONCLUSION:
   b_env = min(b_thermal, b_carbon)
-  --> UNIVERSAL across prokaryotes & eukaryotes"""
+  --> General across prokaryotes and eukaryotes"""
     ax.text(0.02, 0.98, summary, transform=ax.transAxes, fontsize=9.8,
             fontfamily='monospace', verticalalignment='top',
             bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.9))
@@ -264,7 +264,7 @@ def fig_pH_CO2_interaction():
 
   OPERATOR KNOBS:  I, T, CO2_gas, N, pH
   SENSORS:         PAM(a,Pmax), T, pH
-  DIAGNOSIS:       SAI = SAI_T + SAI_C + SAI_N"""
+  DIAGNOSIS:       SAI = max(SAI_T, SAI_C)"""
     ax.text(0.0, 0.98, diagram, transform=ax.transAxes, fontsize=7.5,
             fontfamily='monospace', verticalalignment='top',
             bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.9))

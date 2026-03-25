@@ -354,7 +354,7 @@ for key, res, c in [('s1', result_1, colors['s1']), ('s2', result_2, colors['s2'
                       ('s3', result_3, colors['s3']), ('s4', result_4, colors['s4'])]:
     ax.plot(res['t'], res['b_carbon'], color=c, linewidth=2, linestyle='-')
     ax.plot(res['t'], res['b_thermal'], color=c, linewidth=1.5, linestyle='--', alpha=0.6)
-ax.set_ylabel('β value', fontsize=12)
+ax.set_ylabel('Capacity factor b', fontsize=12)
 ax.set_title('D - b_carbon (solid) vs b_thermal (dashed)', fontsize=12, fontweight='bold')
 ax.axhline(y=0.5, color='gray', linestyle=':', alpha=0.5)
 ax.text(5, 0.52, 'Bottleneck threshold', fontsize=8, color='gray')

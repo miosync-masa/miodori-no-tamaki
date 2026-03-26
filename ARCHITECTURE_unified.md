@@ -1,444 +1,360 @@
-# Midori-no-Tamaki: Unified Architecture
-## EOS-Thermal Extension for Photobioreactor Monitoring & Control
+# Midori-no-Tamaki: Unified Architecture (Paper v2)
+## EOS Environmental Bottleneck Diagnosis for Photosynthetic Systems
 
 **Authors:** M. Iizumi & T. Iizumi (Miosync, Inc.)
-**Date:** 2025-03-22 (Session 1 consolidated)
-**Status:** Theory established, cross-species validated, implementation-ready
+**Date:** 2025-03-22 (updated to paper v2 notation)
+**Paper:** "Closed-Form Environmental Bottleneck Diagnosis for Photosynthetic Systems"
+**Target:** Biotechnology & Bioengineering
+**Status:** Theory established, cross-species validated, paper draft complete
 
 ---
 
 ## 1. Design Philosophy
 
-The original EOS (Equation of State for PI curves) transforms photosynthesis–irradiance curves from fitted objects into predictable state functions. This extension applies the same philosophy to environmental stress: **predict the full photosynthetic state from minimal, real-time sensor readings using closed-form physics**.
+The original EOS (Part I) transforms PI curves from fitted objects into predictable state functions using (α, Pmax). This extension applies the same philosophy to environmental stress: **predict the photoinhibition state from minimal, real-time sensor readings using closed-form physics**.
 
-**Core principle:** At any moment, one bottleneck dominates. The EOS identifies which one. The operator knows which knob to turn.
+Three design commitments:
 
-**Key constraint:** No differential equations in the state estimation layer. All dynamics are captured by sensors measuring the *current* state. Time evolution belongs to a separate control layer — or simply to continuous monitoring.
-
----
-
-## 2. The Bottleneck-Minimum Formulation
-
-```
-β_eff(I, T, pH, DIC) = min(
-    β_light(I),           # photon-induced D1 damage
-    β_thermal(T),         # D1 repair thermodynamic limit
-    β_carbon(pH, DIC, T)  # electron sink deficit from carbon limitation
-)
-```
-
-Each term is a closed-form expression derived from physical constants. The dominant bottleneck determines the active regime. This is Liebig's Law of the Minimum expressed as a mathematical min-function.
-
-### Connection to Original EOS
-
-| Original EOS | Thermal Extension |
-|---|---|
-| β is a fitted parameter | β_eff is computed from physics |
-| SAI = empirical residual | SAI = sum of identified stress components |
-| S = α/β classifies 1D regime | (S, T, pH) classifies 3D regime |
-| EOS2: (α, Pmax) → PI curve | EOS2-extended: (α, Pmax, T, pH) → PI curve |
+1. **Closed-form only.** No differential equations, no iterative solvers, no trained models in the state-estimation layer.
+2. **Species-agnostic structure.** Functional forms are general; species-specific differences enter through parameter values.
+3. **Separation of diagnosis from control.** "What is limiting now?" is answered; "What should be done?" is a separate layer.
 
 ---
 
-## 3. Channel 1: β_light — Light Damage
+## 2. Core Formulation (Paper v2 — Capacity Factor Approach)
 
-**Physics:** Photon absorption by Mn cluster in oxygen-evolving complex → D1 protein damage.
+### 2.1 The Key Insight
 
-**Key property:** Damage rate kd is proportional to light intensity and **temperature-independent**.
+Environmental stresses do NOT accelerate photodamage (kd). They inhibit REPAIR (kr).
+Therefore: β increases when repair capacity drops.
 
-**Evidence:**
-- Allakhverdiev & Murata (2004): kd = 0.200 ± 0.002 min⁻¹ at 2000 µE, across 10–34°C (CV = 0.9%)
-- Torzillo & Vonshak (1994): kd constant across 25–40°C (our fit, CV = 20%)
+### 2.2 Capacity Factors
 
-**Closed form:**
 ```
-kd(I) = σ_PSII × I
+b_thermal(T) = kr(T) / kr(T_opt)  ∈ (0, 1]    — repair capacity relative to optimum
+b_carbon(pH, DIC, T) = Ci_eff / (Km_eff + Ci_eff)  ∈ (0, 1]  — carbon sufficiency
 ```
-where σ_PSII is the effective PSII cross-section (photophysical, not enzymatic).
 
-**Regime boundary:** The original EOS gate variable S = α/β determines when light damage becomes the dominant bottleneck.
+Both are dimensionless, with 1 = optimal and 0 = severe stress.
+
+### 2.3 Bottleneck-Minimum (Liebig's Law)
+
+```
+b_env = min(b_thermal, b_carbon)
+```
+
+The most constrained channel determines the overall environmental capacity.
+
+### 2.4 Effective Susceptibility
+
+```
+β_eff = β_ref(α) / b_env
+```
+
+- β_ref(α) = baseline susceptibility from Part I scaling law (α–β relationship)
+- When b_env < 1: β_eff > β_ref → culture is MORE susceptible to photoinhibition
+- When b_env = 1: β_eff = β_ref → original EOS (no environmental stress)
+
+**Critical:** β_eff is a function of (α, T, pH, DIC) but NOT of irradiance I.
+β is a curve-level parameter, not a function of instantaneous light.
+
+### 2.5 SAI Decomposition (min–max Duality)
+
+```
+SAI = log₁₀(β_eff / β_ref) = −log₁₀(b_env) = max(SAI_thermal, SAI_carbon)
+
+SAI_thermal(T) = −log₁₀(b_thermal) ≈ Ea_r/(2.303·Rg) × (1/T − 1/T_opt)   [cold branch]
+SAI_carbon(pH, DIC, T) = −log₁₀(b_carbon)
+```
+
+The min on capacity maps to max on SAI. Dominant bottleneck = highest SAI component.
 
 ---
 
-## 4. Channel 2: β_thermal — Temperature-Dependent Repair
+## 3. Channel 1: b_thermal — Temperature-Dependent Repair
 
-**Physics:** D1 repair requires: FtsH protease (damaged D1 degradation) → ribosomal psbA translation → new D1 synthesis → PSII reassembly. All steps are enzymatic and ATP-dependent.
+### 3.1 Physics
 
-**Key property:** Repair rate kr follows Arrhenius kinetics with a denaturation ceiling.
+D1 repair = FtsH protease (degradation) → psbA translation → D1 synthesis → PSII reassembly.
+All steps are enzymatic, ATP-dependent, and temperature-sensitive.
 
-**Evidence (cross-species validated):**
+### 3.2 Closed Form
 
-| Source | Organism | Ea_repair | Denaturation |
-|---|---|---|---|
-| Allakhverdiev 2004, D1 synthesis | Synechocystis | 87 kJ/mol | — |
-| Allakhverdiev 2004, repair rate | Synechocystis | 74 kJ/mol | — |
-| Ueno 2016 | Synechocystis | — | Tm ≈ 42–44°C |
-| Rehder 2023, acute Pmax shift | Phaeodactylum (diatom) | 48 kJ/mol | — |
-| Literature default | General | 63 kJ/mol (0.65 eV) | Species-dependent |
-
-**Note on Ea_r = 240 kJ/mol:** Our initial 2-point fit from Torzillo 1994 (25°C, 35°C) overestimated Ea_r because the 25°C data point included non-linear ROS-mediated translational collapse (Nishiyama 2001), not captured by simple Arrhenius. Independent multi-temperature data consistently yield 50–90 kJ/mol. We adopt 63 kJ/mol (0.65 eV) as the operational default, pending Spirulina-specific calibration.
-
-**Closed form:**
 ```
-kr(T) = kr0 · exp(-Ea_r / R·T_K) · 1/(1 + exp((T - Tm)/δT))
+kr(T) = kr0 · exp(−Ea_r / Rg·T) · 1/(1 + exp((T − Tm)/δT))
         |---- Arrhenius cold branch ----|  |-- denaturation sigmoid --|
 
-Parameters:
-  Ea_r  = 63 kJ/mol (0.65 eV, literature default)
-  Tm    = 42°C (Synechocystis; Spirulina may be similar due to thermotolerance)
-  δT    = 3°C (transition width)
+b_thermal(T) = kr(T) / kr(T_opt)
 
-β_thermal(T) = kr(T) / kr(T_opt)  (normalized to optimal)
+Explicit:
+b_thermal(T) = exp(−Ea_r/Rg · (1/T − 1/T_opt)) · [1+exp((T_opt−Tm)/δT)] / [1+exp((T−Tm)/δT)]
 ```
 
-**Cross-species universality confirmed:**
-- α is temperature-independent in Synechocystis (Allakhverdiev 2004) AND Phaeodactylum (Rehder 2023, ratio = 1.01)
-- kd is temperature-independent (CV = 0.9%, 10–34°C)
-- Structure kd×I / kr(T) holds across prokaryotes and eukaryotes
+### 3.3 Parameters
 
-**Operator significance:**
+| Parameter | Default | Range | Source |
+|-----------|---------|-------|--------|
+| Ea_r | 63 kJ/mol (0.65 eV) | 48–87 kJ/mol | Literature + cross-species validation |
+| T_opt | Species-dependent | 30–37°C | Species-specific |
+| Tm | T_opt + 7°C (heuristic) | 40–45°C | Ueno 2016 (Synechocystis: 42–44°C) |
+| δT | 3°C | 2–5°C | Estimated from Ueno 2016 |
+
+### 3.4 Key Properties (Validated)
+
+- kd is temperature-INDEPENDENT (CV = 0.9%, 10–34°C) — Allakhverdiev 2004
+- kr follows Arrhenius (Ea = 48–87 kJ/mol across species) — Allakhverdiev 2004, Rehder 2023
+- α is temperature-INDEPENDENT (ratio = 1.01) — Rehder 2023
+- Denaturation threshold exists (repair abolished at 44°C) — Ueno 2016
+- Acute response ≠ acclimated response (×1.90 vs ×1.22) — Rehder 2023
+
+### 3.5 Operational Significance
+
 ```
-I_cross(T) = kr(T) / kd = critical irradiance where damage = repair
+I_cross(T) = kr(T) / σ_PSII   — irradiance where damage = repair
 
-T = 25°C: I_cross ≈ low  → morning cold = photoinhibition risk
-T = 35°C: I_cross ≈ high → operational light range is safe
+Low T → I_cross drops → photoinhibition at lower light levels
+→ Morning cold = photoinhibition risk even at moderate light
 ```
 
 ---
 
-## 5. Channel 3: β_carbon — Carbon Supply Limitation
+## 4. Channel 2: b_carbon — Carbon Supply Limitation
 
-**Physics:** When CO₂/HCO₃⁻ supply to RuBisCO is insufficient, the Calvin cycle slows, electrons accumulate on PSI acceptor side, producing ROS, which inhibits D1 repair (kr) — creating an indirect coupling to β_thermal.
+### 4.1 Physics
 
-### 5.1 Carbonate Equilibrium (closed form, well-established chemistry)
+Calvin cycle substrate limitation → electron accumulation on PSI → ROS → EF-G oxidation
+→ D1 translation block → kr inhibited indirectly.
+
+### 4.2 Carbonate Equilibrium (closed form)
 
 ```
-CO₂(aq) ⇌ HCO₃⁻ ⇌ CO₃²⁻
-
 DIC = [CO₂] + [HCO₃⁻] + [CO₃²⁻]
 
-α₀(pH) = CO₂ fraction  = 1 / (1 + K1/H + K1·K2/H²)
-α₁(pH) = HCO₃⁻ fraction = 1 / (H/K1 + 1 + K2/H)
-α₂(pH) = CO₃²⁻ fraction = 1 / (H²/(K1·K2) + H/K2 + 1)
+α₁(pH, T) = [HCO₃⁻]/DIC = 1 / ([H⁺]/K₁ + 1 + K₂/[H⁺])
 
-K1(T) ≈ 4.3×10⁻⁷ at 25°C (temperature-dependent, tabulated)
-K2(T) ≈ 4.7×10⁻¹¹ at 25°C (temperature-dependent, tabulated)
+Ci_eff = DIC × α₁(pH, T)     — effective carbon available to CCM
+
+K₁(T) ≈ 4.3×10⁻⁷ at 25°C  (tabulated)
+K₂(T) ≈ 4.7×10⁻¹¹ at 25°C  (tabulated)
 ```
 
-### 5.2 Effective Carbon Concentration
+For cyanobacteria: HCO₃⁻ is the dominant CCM-accessible species.
+More generally: Ci_eff = effective inorganic carbon pool accessible to organism-specific CCM.
 
-Spirulina uses HCO₃⁻ via CCM (Carbon Concentrating Mechanism), not CO₂(aq) directly.
-```
-Ci_eff(pH, DIC) = DIC × α₁(pH)    [mM HCO₃⁻ available]
-
-Zarrouk medium: DIC ≈ 200 mM (16.8 g/L NaHCO₃)
-  pH 9.5:  Ci_eff ≈ 180 mM (HCO₃⁻ dominant, ~90%)
-  pH 12:   Ci_eff ≈ 20 mM  (CO₃²⁻ dominant, HCO₃⁻ depleted)
-  pH 12+:  Ci_eff → 0       (growth stops — Kobayashi 1996)
-```
-
-### 5.3 β_carbon Definition (Michaelis-Menten, closed form)
+### 4.3 Carbon Capacity Factor
 
 ```
-β_carbon(pH, DIC, T) = Ci_eff / (Km_eff + Ci_eff)
+b_carbon(pH, DIC, T) = Ci_eff / (Km_eff + Ci_eff)    — Michaelis-Menten
 
-Km_eff: effective half-saturation for HCO₃⁻ uptake (~5 mM after CCM correction)
+Ci_eff ≫ Km_eff → b_carbon → 1 (carbon-replete)
+Ci_eff → 0      → b_carbon → 0 (growth stops)
 ```
 
-### 5.4 Experimental Evidence
+### 4.4 Parameters
 
-Kobayashi & Fujita (1996), Spirulina NIES-39, 25°C, 250 µE/m²/s:
+| Parameter | Default | Source |
+|-----------|---------|--------|
+| Zarrouk DIC | 200 mM | NaHCO₃ 16.8 g/L |
+| Km_eff | ~5 mM | CCM-corrected estimate |
+| K₁, K₂ | f(T), tabulated | Physical chemistry |
 
-| Condition | pH range | Max biomass | Growth stopped by |
-|---|---|---|---|
-| No pH control | 8.95 → 12+ | 1.2 g/L | CO₃²⁻ dominates, HCO₃⁻ gone |
-| pH controlled (CO₂) | 8.5–10 | 2.2 g/L | Nitrogen depletion |
-| pH + N controlled | 8.5–10 | 4.2 g/L | Mutual shading (light) |
+### 4.5 Key Properties (Validated)
 
-This demonstrates **sequential bottleneck transitions**: β_carbon → N-limitation → β_light.
+- pH 12 → HCO₃⁻ < 10% of DIC → growth stops — Kobayashi 1996
+- Sequential bottleneck transitions: carbon → nitrogen → light — Kobayashi 1996
+- 3.5× biomass increase upon serial constraint relief — Kobayashi 1996
 
 ---
 
-## 6. pH–CO₂–Light–Temperature Interactions
+## 5. Feedback Loops and Dynamic Behavior
 
-### 6.1 The Physical Chain
-
-```
-CO₂ dissolves → H⁺ released → pH decreases
-Photosynthesis consumes CO₂ → H⁺ removed → pH increases
-CO₂ gas supply → replenishes CO₂ → pH decreases (control mechanism)
-Temperature up → CO₂ solubility down → less CO₂ per unit gas supply
-Temperature up → enzyme rates up → faster CO₂ consumption → pH rises faster
-```
-
-### 6.2 Feedback Loop
+### 5.1 The pH–CO₂ Feedback
 
 ```
-High light → fast Pgross → rapid CO₂ consumption → pH rises → 
-→ HCO₃⁻ decreases → β_carbon drops → Pgross limited → CO₂ consumption slows → 
-→ pH stabilizes (NEGATIVE FEEDBACK within pH 8.5–10.5)
+High light → fast Pgross → CO₂ consumed → pH rises →
+→ HCO₃⁻ decreases → b_carbon drops → Pgross limited → pH stabilizes
+  (NEGATIVE FEEDBACK within pH 8.5–10.5)
 
-BUT: if pH exceeds ~11, HCO₃⁻ → CO₃²⁻ transition accelerates → 
+BUT: pH > ~11 → HCO₃⁻ → CO₃²⁻ transition accelerates →
 → RUNAWAY to pH 12+ → irreversible growth stop
 ```
 
-### 6.3 Interaction Matrix
+### 5.2 Temperature Trade-off
+
+Temperature increase simultaneously:
+1. IMPROVES b_thermal (kr↑, Arrhenius)
+2. WORSENS CO₂ solubility (Henry's law)
+3. INCREASES respiration R(T) → nighttime biomass loss
+4. INCREASES CO₂ consumption rate → faster pH rise
+
+→ Higher T requires more aggressive CO₂ supply.
+
+### 5.3 Interaction Matrix
 
 ```
               Light(I)    Temp(T)     CO₂/pH      Nitrogen(N)
-β_light       DIRECT      —           indirect    —
-β_thermal     indirect    DIRECT      indirect    —
-β_carbon      indirect    indirect    DIRECT      —
-η(allocation) —           DIRECT      —           DIRECT
+b_thermal     indirect    DIRECT      indirect    —
+b_carbon      indirect    indirect    DIRECT      —
 ```
 
-Each channel has ONE primary control knob. Cross-talk occurs through feedback loops but does not change the primary control structure.
-
-### 6.4 Temperature Trade-off
-
-Temperature increase simultaneously:
-1. **Improves** β_thermal (kr↑, Arrhenius)
-2. **Worsens** β_carbon (CO₂ solubility↓, Henry's law)
-3. **Increases** respiration (R(T)↑, nighttime biomass loss↑)
-4. **Increases** CO₂ consumption rate (faster pH rise)
-
-→ **Higher temperature requires more aggressive CO₂ supply.** The optimal operating point is not temperature alone but (T, CO₂_supply) jointly.
+Each channel has ONE primary control knob. Cross-talk occurs through feedback but does not change the primary control structure.
 
 ---
 
-## 7. SAI Decomposition
+## 6. Sensing Architecture
 
-The original SAI = log₁₀(β_obs) − log₁₀(β_pred(α)) now has physical meaning:
-
-```
-SAI_total = SAI_thermal(T)           # Arrhenius, Ea ≈ 65 kJ/mol
-          + SAI_carbon(pH, DIC)      # Michaelis-Menten, pH-dependent
-          + SAI_nitrogen(N_status)   # D1 synthesis raw material limitation
-          + SAI_ROS(I_history, T)    # Accumulated oxidative stress
-```
-
-Each component is independently measurable and interpretable. The original piCurve dataset's SAI scatter (σ = 0.303) reflects the **sum of all unmeasured environmental conditions** — temperature, pH, nutrients, light history — varying across 1,808 curves.
-
-**Insight from today:** Ea_r measured values "scatter" across papers (42–87 kJ/mol) because cultivation conditions modulate kr through multiple pathways (ROS, ATP, salt, N). The base Arrhenius slope is ~63 kJ/mol; deviations are SAI_ROS, SAI_carbon, SAI_nitrogen overlaid on it.
-
----
-
-## 8. Monitoring Architecture
-
-### 8.1 Sensor Requirements
+### 6.1 Minimum Sensor Set
 
 | Sensor | Measures | Feeds | Cost |
-|---|---|---|---|
-| pH probe | pH(t) | β_carbon | ~$5 |
-| Thermometer | T(t) | β_thermal | ~$5 |
-| PAM (optional) | α, Pmax | β_light, S regime | ~$10k+ |
-| DIC (from medium recipe) | DIC₀ | β_carbon | Free |
+|--------|----------|-------|------|
+| Thermistor | T(t) | b_thermal | ~$10 |
+| pH probe | pH(t) | b_carbon | ~$10 |
+| (Medium recipe) | DIC₀ | b_carbon | Free (nominal, optionally recalibrated) |
+| PAM (optional) | α, Pmax | β_ref, S regime | ~$10k+ |
 
-**Minimum viable system: pH + Temperature.** PAM adds precision but is not required for bottleneck diagnosis.
+**Minimum viable system: pH + Temperature + known DIC.**
 
-### 8.2 Computation (all closed-form, instant)
+### 6.2 Computation (all closed-form, instant)
 
 ```python
-# Inputs: pH, T, DIC (known from medium)
-Ci_eff = DIC * alpha1(pH, T)                        # carbonate equilibrium
-b_carbon = Ci_eff / (Km_eff + Ci_eff)               # Michaelis-Menten
-b_thermal = exp(-Ea_r/R*(1/T_K - 1/T_opt_K))        # Arrhenius
-            * sigmoid(Tm, T, dT)                     # denaturation
-b_eff = min(b_thermal, b_carbon)                     # bottleneck
+# At each sensor update:
+Ci_eff = DIC * alpha1(pH, T)                               # carbonate equilibrium
+b_carbon = Ci_eff / (Km_eff + Ci_eff)                      # Michaelis-Menten
+b_thermal = exp(-Ea_r/Rg*(1/T_K - 1/T_opt_K)) * sigmoid    # Arrhenius + denaturation
+b_env = min(b_thermal, b_carbon)                            # bottleneck
+# β_eff = β_ref(α) / b_env                                 # if PAM available
+# SAI = -log10(b_env)                                      # stress index
 ```
 
-No differential equations. No time integration. No ML model. **Pure physics, evaluated at the current sensor readings.**
+Computation is negligible relative to sensor update intervals. Compatible with low-cost embedded implementation.
 
-### 8.3 Operator Decision Layer
+### 6.3 Operator Decision Logic
 
-```
-IF β_carbon < β_thermal:
-    → "Carbon limited: increase CO₂ supply, check pH"
-IF β_thermal < β_carbon:
-    → "Temperature limited: warm culture toward 35°C"
-IF both OK but growth plateaus:
-    → "Check nitrogen, or harvest (light-limited by density)"
+| Condition | Diagnosis | Recommended action |
+|-----------|-----------|-------------------|
+| b_carbon < b_thermal | Carbon-limited | Increase CO₂; verify pH 8.5–10.5 |
+| b_thermal < b_carbon | Temperature-limited | Warm culture toward T_opt |
+| Both > 0.8, plateau | Outside formalized channels | Check N; consider harvesting |
+| pH > 10.5 | Approaching carbon crisis | Immediate CO₂ injection |
+| T > Tm − 5°C | Approaching denaturation | Cool culture |
 
-ALERTS:
-    pH > 10.5   → "CO₂ urgently needed"
-    pH > 12     → "EMERGENCY: culture dying"
-    T < 28°C    → "D1 repair severely impaired"
-    T > 40°C    → "Denaturation risk"
-```
+Thresholds are illustrative heuristics; tune to organism and operating context.
 
-### 8.4 Layer Structure
+### 6.4 Layer Structure
 
 ```
-Layer 0: Sensors       → pH, T, (PAM optional)        [measure]
-Layer 1: EOS (closed)  → β_eff, bottleneck ID         [compute instantly]
+Layer 0: Sensors       → pH, T, (PAM optional)        [hardware]
+Layer 1: State est.    → b_env, bottleneck ID          [closed-form, instant]
 Layer 2: Threshold     → Alarms, operator guidance     [rule-based]
-Layer 3: Optimization  → Optimal (I, T, CO₂) for      [ML or model-based,
-                         target objective function       future work]
+Layer 3: Optimization  → Objective-dependent control   [ML/model-based, FUTURE]
 ```
 
-Layers 0–2 are implementation-ready today. Layer 3 is future.
+Layers 0–2: implementable today. Layer 3: future work.
+The closed-form state estimator provides physics-informed features for any Layer 3 method.
 
 ---
 
-## 9. Objective Functions (Application-Dependent)
+## 7. Cross-Species Validation Summary
 
-Same 3 knobs (I, T, CO₂), different optimal settings:
+| # | Prediction | Data | Species | Type | Result |
+|---|------------|------|---------|------|--------|
+| 1 | kd T-independent | CV = 0.9% (10–34°C) | Synechocystis | Direct | Confirmed |
+| 2a | kr Arrhenius | Ea = 74–87 kJ/mol | Synechocystis | Direct | Confirmed |
+| 2b | kr Arrhenius | Ea = 48 kJ/mol (acute Pmax) | Phaeodactylum | Indirect | Consistent |
+| 3 | Denaturation ceiling | Repair abolished at 44°C | Synechocystis | Direct | Confirmed |
+| 4 | α T-independent | Ratio = 1.01 (6°C vs 15°C) | Phaeodactylum | Direct | Confirmed |
+| 5 | b_carbon → 0 at pH 12 | Growth stops, culture bleaches | Spirulina | Qualitative | Consistent |
+| 6 | Sequential transitions | C → N → light upon serial relief | Spirulina | Qualitative | Consistent |
+| 7 | SAI decomposable | Acute ≠ acclimated (×1.90 vs ×1.22) | Phaeodactylum | Indirect | Consistent |
 
-```
-J_CO2_absorption = Pgross(I,T,CO₂) - R(T)×night_fraction
-    → Maximizes net carbon fixation (carbon credit applications)
-    → Favors lower night temperature (reduces R(T))
-
-J_growth = Pgross × η_protein(T) - R(T)
-    → Maximizes biomass production
-    → Requires T ≈ 35°C for optimal allocation
-
-J_protein = Pgross × η_protein(T) × protein_fraction(T, N)
-    → Maximizes protein yield (food security / "chicken replacement")
-    → Requires T ≈ 35°C AND adequate nitrogen supply
-```
-
-The EOS provides the state estimation; the objective function determines which optimum to target.
+7/7 predictions supported. Structure is species-agnostic; parameters are species-dependent.
 
 ---
 
-## 10. Physical Constants Summary
+## 8. Physical Constants
 
-### Confirmed (literature + independent validation)
+### Confirmed
 
-| Constant | Value | Source | Status |
-|---|---|---|---|
-| kd temperature independence | CV = 0.9% (10–34°C) | Allakhverdiev 2004 | CONFIRMED |
-| Ea_repair (operational default) | 63 kJ/mol (0.65 eV) | Literature consensus | ADOPTED |
-| Ea_repair (Synechocystis range) | 48–87 kJ/mol | Allakhverdiev 2004, Ueno 2016, Rehder 2023 | CONFIRMED |
-| Denaturation Tm | 42–44°C (Synechocystis) | Ueno 2016 | CONFIRMED |
-| D1 synthesis = repair bottleneck | Confirmed | Allakhverdiev 2004, 2005 | CONFIRMED |
-| ATP required for repair | DCCD abolishes repair | Allakhverdiev 2005 | CONFIRMED |
-| α temperature independence | Ratio ≈ 1.01 (6°C vs 15°C) | Rehder 2023 | CONFIRMED |
-| Ea_respiration | 48.8 kJ/mol | Torzillo 1994 | CONFIRMED |
-| R(T) equation | 0.771·exp(0.0616T) | Torzillo 1994 | CONFIRMED |
-| pH growth stop | pH 12+ | Kobayashi 1996 | CONFIRMED |
-| γ₀ | cosh²(1) ≈ 2.381 | Original EOS (Iizumi 2026) | KNOWN |
-| α–β scaling (m, c) | 0.814, −1.355 | Original EOS | KNOWN |
-| Design law k | 50.4 | Original EOS | KNOWN |
+| Constant | Value | Source |
+|----------|-------|--------|
+| kd T-independence | CV = 0.9% | Allakhverdiev 2004 |
+| Ea_repair (default) | 63 kJ/mol (0.65 eV) | Literature consensus |
+| Ea_repair range | 48–87 kJ/mol | Cross-species (3 studies) |
+| Denaturation Tm | 42–44°C (Synechocystis) | Ueno 2016 |
+| α T-independence | Ratio = 1.01 | Rehder 2023 |
+| γ₀ | cosh²(1) ≈ 2.381 | Original EOS |
+| α–β scaling (m, c) | 0.814, −1.355 | Original EOS |
 
-### Adopted (reasonable defaults, refinable)
+### Adopted Defaults
 
-| Constant | Value | Basis | Status |
-|---|---|---|---|
-| Km_eff (HCO₃⁻) | ~5 mM | CCM-corrected estimate | DEFAULT |
-| CCM concentration factor | ~1000× | Cyanobacteria literature | DEFAULT |
-| Zarrouk medium DIC | 200 mM | NaHCO₃ 16.8 g/L | KNOWN |
-| K1, K2 (carbonate) | Tabulated f(T) | Physical chemistry | KNOWN |
-
-### To be determined (Spirulina-specific)
-
-| Constant | Expected range | Method |
-|---|---|---|
-| Ea_repair (Spirulina) | 50–90 kJ/mol | PI curves at 3+ temperatures |
-| Tm (Spirulina) | 40–45°C | Repair assay above 38°C |
-| CCM efficiency vs pH | Unknown | Literature or measurement |
+| Constant | Value | Basis |
+|----------|-------|-------|
+| Km_eff (HCO₃⁻) | ~5 mM | CCM-corrected estimate |
+| Zarrouk DIC | 200 mM | NaHCO₃ 16.8 g/L |
+| Tm heuristic | T_opt + 7°C | Pragmatic starting point |
+| δT | 3°C | Estimated |
 
 ---
 
-## 11. Dynamic Simulation Results
-
-PBR feedback simulation (pbr_dynamics.py) confirmed:
-
-| Scenario | T | CO₂ control | Max biomass | Bottleneck |
-|---|---|---|---|---|
-| S1 | 25°C | None | 0.9 g/L | β_thermal |
-| S2 | 25°C | Yes | 0.9 g/L | β_thermal (CO₂ helps but T still limits) |
-| S3 | 35°C | Yes | 7.7 g/L | β_carbon (fast growth depletes DIC) |
-| S4 | 35°C | Yes + N | 9.6 g/L | β_carbon eventually |
-
-Key findings:
-1. At 25°C, CO₂ control alone cannot rescue growth — temperature is the primary bottleneck
-2. At 35°C, growth is fast enough that CO₂ supply becomes limiting — the bottleneck switches
-3. Nitrogen becomes limiting only after both T and CO₂ are controlled
-4. pH runaway occurs when Pgross × biomass exceeds CO₂ supply capacity
-
----
-
-## 12. Validation Summary
-
-| Prediction | Data source | Result |
-|---|---|---|
-| kd is T-independent | Allakhverdiev 2004 (4 temps) | CV = 0.9% ✓ |
-| kr is Arrhenius-type | Allakhverdiev 2004, Ueno 2016 | Ea = 48–87 kJ/mol ✓ |
-| α is T-independent | Rehder 2023 (diatom, 6°C vs 15°C) | Ratio = 1.01 ✓ |
-| Denaturation at ~42°C | Ueno 2016 (repair abolished at 44°C) | ✓ |
-| pH 12 kills growth | Kobayashi 1996 (Spirulina NIES-39) | ✓ |
-| CO₂ control → 2× biomass | Kobayashi 1996 (1.2 → 2.2 g/L) | ✓ |
-| pH + N → 4× biomass | Kobayashi 1996 (1.2 → 4.2 g/L) | ✓ |
-| Acclimation ≠ acute T response | Rehder 2023 (×1.22 vs ×1.90) | ✓ |
-| ROS inhibits repair not damage | Nishiyama 2001 (translation block) | ✓ |
-| ATP is rate-limiting for repair | Allakhverdiev 2005 (DCCD abolishes) | ✓ |
-
----
-
-## 13. Data Repository
+## 9. Repository Structure
 
 ```
 miodori-no-tamaki-main/
-├── ARCHITECTURE_unified.md          ← THIS FILE
-├── ARCHITECTURE_thermal.md          ← Phase 1 design (historical)
-├── ARCHITECTURE_carbon.md           ← Phase 2 design (historical)
+├── ARCHITECTURE_unified.md          ← THIS FILE (paper v2 notation)
 ├── eos_sensor.py                    ← Original EOS implementation
 ├── data/
-│   ├── SOURCES.md                   ← Literature catalog
+│   ├── SOURCES.md
 │   ├── torzillo1994_*.csv (5)       ← PI curve temperature data
-│   ├── torzillo1991_*.csv (6)       ← PBR night biomass loss
-│   ├── torzillo1998_*.csv (3)       ← PAM fluorescence data
-│   ├── tanaka2020_*.csv (5)         ← Dark-period temperature effects
-│   ├── kobayashi1996_*.csv (2)      ← pH control growth data
-│   ├── nishiyama_group_*.csv (2)    ← Independent Ea_r validation
+│   ├── torzillo1991_*.csv (6)       ← Night biomass loss
+│   ├── torzillo1998_*.csv (3)       ← PAM fluorescence
+│   ├── tanaka2020_*.csv (5)         ← Dark-period temperature
+│   ├── kobayashi1996_*.csv (2)      ← pH control growth
+│   ├── nishiyama_group_*.csv (2)    ← Independent Ea validation
 │   ├── rehder2023_*.csv (1)         ← Cross-species validation
-│   └── arrhenius_fitted_params.csv  ← Fitted Arrhenius parameters
-├── soba/
-│   ├── fit_arrhenius_kd_kr.py       ← Arrhenius fitting script
-│   └── pbr_dynamics.py              ← PBR feedback simulation
-├── figures/
-│   ├── Fig_arrhenius_kd_kr.png
-│   ├── Fig_SAI_crossover_prediction.png
-│   ├── Fig_cross_species_validation.png
-│   └── Fig_PBR_dynamics_simulation.png
-└── raw_data/
-    └── csv.zip                      ← piCurve 1,808 curves
+│   └── arrhenius_fitted_params.csv
+├── soba2/
+│   ├── fit_arrhenius_kd_kr.py       ← Arrhenius fitting (Fig 1-2)
+│   ├── generate_thermal_figures.py  ← Cross-species + pH-CO₂ (Fig 3-4)
+│   └── pbr_dynamics.py             ← PBR simulation (Fig 5)
+└── figures2/
+    ├── Fig_arrhenius_kd_kr.png
+    ├── Fig_SAI_crossover_prediction.png
+    ├── Fig_cross_species_validation.png
+    ├── Fig_pH_CO2_interaction_map.png
+    └── Fig_PBR_dynamics_simulation.png
 ```
 
 ---
 
-## 14. Roadmap
+## 10. Roadmap
 
-### Phase 1: Spirulina EOS-thermal (THIS SESSION — largely complete)
-- [x] β_eff = min(β_light, β_thermal, β_carbon) formulation
-- [x] Arrhenius fitting (Ea_r initial + correction)
-- [x] Independent validation (Nishiyama group, 4 papers)
-- [x] Cross-species validation (Rehder 2023, diatom)
-- [x] SAI decomposition theory
-- [x] PBR feedback simulation
-- [x] pH-CO₂ channel formalization
-- [ ] Spirulina-specific Ea_r (piCurve metadata or collaboration)
+### Done
+- [x] β_eff = β_ref(α) / b_env formulation (paper v2)
+- [x] b_thermal: Arrhenius + denaturation sigmoid
+- [x] b_carbon: carbonate equilibrium + Michaelis-Menten
+- [x] SAI = −log₁₀(b_env) = max(SAI_T, SAI_C) — min–max duality
+- [x] Cross-species validation (7 predictions, 3 species)
+- [x] PBR feedback simulation (4 scenarios)
+- [x] Paper draft complete (Abstract–References, 6,700+ words)
+- [x] Code notation unified to paper v2
 
-### Phase 2: Implementation
-- [ ] eos_thermal.py module (closed-form functions)
-- [ ] Operator dashboard prototype
-- [ ] Validation against Kobayashi 1996 growth curves (quantitative)
+### Next
+- [ ] Spirulina-specific Ea_r calibration
+- [ ] Fig 1 conceptual diagram (β_ref → β_eff)
+- [ ] Final formatting for B&B submission
+- [ ] eos_thermal.py implementation module
 
-### Phase 3: Generalization
-- [ ] Higher plants (lettuce, strawberry)
-- [ ] Allocation layer η(T, N) for target-specific optimization
-- [ ] Amino acid composition control (protein quality)
-
-### Phase 4: Product
-- [ ] Miosync PBR monitoring system (pH + T + EOS)
-- [ ] Layer 3 optimization (ML or model-based)
-- [ ] Field validation with partner facilities
+### Future
+- [ ] Higher plants extension (strawberry, lettuce)
+- [ ] Allocation layer η(T, N)
+- [ ] Nitrogen channel formalization
+- [ ] Layer 3 optimal control
+- [ ] Nighttime respiration integration
 
 ---
 
-*"The EOS transforms PI curves from fitted objects into predictable state functions.
-The thermal extension transforms environmental stress from unmeasured noise into diagnosed bottlenecks."*
+*"The EOS transforms PI curves from fitted objects into predictable state functions.*
+*The thermal/carbon extension transforms environmental stress from unmeasured noise into diagnosed bottlenecks.*
+*b_env = min(b_thermal, b_carbon). β_eff = β_ref / b_env. SAI = max(SAI_T, SAI_C)."*
 
 — M. Iizumi & T. Iizumi, Miosync Inc.

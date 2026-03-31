@@ -168,6 +168,59 @@ def pi_curve(
     }
 
 
+
+# ============================================================================
+# OPTIMAL IRRADIANCE (closed-form)
+# ============================================================================
+
+W_BETA = GAMMA_0 / (GAMMA_0 + 1)   # 0.7042 weight on I_beta
+W_ALPHA = 1.0 / (GAMMA_0 + 1)      # 0.2958 weight on I_alpha
+
+
+def I_opt_analytic(alpha: float, Pmax: float, beta: float) -> float:
+    """Closed-form optimal irradiance: I_opt = I_alpha^w_a * I_beta^w_b."""
+    if alpha <= 0 or Pmax <= 0 or beta <= 0:
+        raise ValueError("alpha, Pmax, beta must be positive")
+    I_alpha = Pmax / alpha
+    I_beta = Pmax / beta
+    return I_alpha ** W_ALPHA * I_beta ** W_BETA
+
+
+def I_opt_numerical(alpha: float, Pmax: float, beta: float,
+                    gamma: float = GAMMA_0, n: int = 100000) -> tuple:
+    """Find optimal irradiance numerically. Returns (I_opt, P_max)."""
+    I_max = max(Pmax/alpha * 5, Pmax/beta * 2, 3000)
+    best_I, best_P = 0.0, 0.0
+    for i in range(1, n + 1):
+        I = I_max * i / n
+        r = pi_curve(I, Pmax, alpha, beta, gamma)
+        if r["P_gross"] > best_P:
+            best_P = r["P_gross"]
+            best_I = I
+    return best_I, best_P
+
+
+def validate_I_opt(alpha: float, Pmax: float, beta: float) -> dict:
+    """Compare analytic vs numerical I_opt."""
+    S = alpha / beta
+    regime_info = classify_regime(S)
+    I_ana = I_opt_analytic(alpha, Pmax, beta)
+    I_num, P_num = I_opt_numerical(alpha, Pmax, beta)
+    P_ana = pi_curve(I_ana, Pmax, alpha, beta)["P_gross"]
+    I_err = abs(I_ana - I_num) / I_num * 100 if I_num > 0 else 0
+    P_err = abs(P_ana - P_num) / P_num * 100 if P_num > 0 else 0
+    return {
+        "S": round(S, 2), "regime": regime_info["regime"],
+        "I_opt_analytic": round(I_ana, 2),
+        "I_opt_numerical": round(I_num, 2),
+        "I_error_pct": round(I_err, 2),
+        "P_at_I_analytic": round(P_ana, 6),
+        "P_at_I_numerical": round(P_num, 6),
+        "P_error_pct": round(P_err, 4),
+        "w_alpha": round(W_ALPHA, 4),
+        "w_beta": round(W_BETA, 4),
+    }
+
 # ============================================================================
 # SENSOR RESULT
 # ============================================================================
@@ -204,6 +257,7 @@ class EOSResult:
     I_alpha: float = 0.0     # PCC saturation irradiance
     I_beta: float = 0.0      # SCC onset irradiance
     I_opt: float = 0.0       # Optimum irradiance (from curve peak)
+    I_opt_closed_form: float = 0.0  # Analytic I_opt (weighted geometric mean)
 
     def to_json(self, indent=2) -> str:
         return json.dumps(asdict(self), indent=indent, ensure_ascii=False)
@@ -306,6 +360,7 @@ class EOSSensor:
         # --- I_opt from actual curve peak (exact, γ₀-aware) ---
         peak = max(curve, key=lambda p: p["P_gross"])
         I_opt = peak["I"]
+        I_opt_cf = I_opt_analytic(alpha, Pmax, beta_eff)  # closed-form
 
         # --- Error estimate ---
         if sigma_SAI is not None:
@@ -335,6 +390,7 @@ class EOSSensor:
             I_alpha=round(I_alpha, 1),
             I_beta=round(I_beta, 1),
             I_opt=round(I_opt, 1),
+            I_opt_closed_form=round(I_opt_cf, 1),
         )
 
     def diagnose(self, alpha: float, Pmax: float, beta_obs: float) -> dict:

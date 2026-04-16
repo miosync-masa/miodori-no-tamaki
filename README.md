@@ -304,7 +304,7 @@ All analyses are based on **1,808 PI curves** from the piCurve compilation:
              predicting {PI} curves from $\alpha$, $P_{\max}$,
              and a stress adaptation index},
   author  = {Iizumi, Masamichi},
-  journal = {Biochemical Engineering Journal},
+  journal = {},
   year    = {2026},
   note    = {Submitted}
 }

@@ -302,7 +302,7 @@ The closed-form state estimator provides physics-informed features for any Layer
 miodori-no-tamaki-main/
 ├── ARCHITECTURE_unified.md          ← THIS FILE (paper v2 notation)
 ├── eos_sensor.py                    ← Original EOS implementation
-├── data/
+├── raw_data/data/
 │   ├── SOURCES.md
 │   ├── torzillo1994_*.csv (5)       ← PI curve temperature data
 │   ├── torzillo1991_*.csv (6)       ← Night biomass loss

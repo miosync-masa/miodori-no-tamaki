@@ -319,7 +319,7 @@ All analyses are based on **1,808 PI curves** from the piCurve compilation:
 
 ## Authors
 
-**Masamichi Iizumi** & **Tamaki Iizumi** — Miosync, Inc.
+**Masamichi Iizumi** — Miosync, Inc.
 
 ---
 

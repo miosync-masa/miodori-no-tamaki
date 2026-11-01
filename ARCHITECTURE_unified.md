@@ -311,17 +311,13 @@ miodori-no-tamaki-main/
 │   ├── kobayashi1996_*.csv (2)      ← pH control growth
 │   ├── nishiyama_group_*.csv (2)    ← Independent Ea validation
 │   ├── rehder2023_*.csv (1)         ← Cross-species validation
-│   └── arrhenius_fitted_params.csv
+│   └── ...
 ├── soba2/
-│   ├── fit_arrhenius_kd_kr.py       ← Arrhenius fitting (Fig 1-2)
+│   ├── eos_thermal_model.py         ← shared closed-form equations (Eqs. 6-12)
+│   ├── fit_allakhverdiev_kd_kr.py   ← Arrhenius fitting (Fig 2)
 │   ├── generate_thermal_figures.py  ← Cross-species + pH-CO₂ (Fig 3-4)
-│   └── pbr_dynamics.py             ← PBR simulation (Fig 5)
-└── figures2/
-    ├── Fig_arrhenius_kd_kr.png
-    ├── Fig_SAI_crossover_prediction.png
-    ├── Fig_cross_species_validation.png
-    ├── Fig_pH_CO2_interaction_map.png
-    └── Fig_PBR_dynamics_simulation.png
+│   ├── pbr_dynamics.py              ← PBR simulation (Fig 5)
+│   └── output/                      ← generated figures (Fig 2-5) and JSON summaries
 ```
 
 ---
@@ -342,7 +338,7 @@ miodori-no-tamaki-main/
 - [ ] Spirulina-specific Ea_r calibration
 - [ ] Fig 1 conceptual diagram (β_ref → β_eff)
 - [ ] Final formatting for B&B submission
-- [ ] eos_thermal.py implementation module
+- [x] eos_thermal implementation module (soba2/eos_thermal_model.py)
 
 ### Future
 - [ ] Higher plants extension (strawberry, lettuce)

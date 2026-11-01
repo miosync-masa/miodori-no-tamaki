@@ -32,7 +32,7 @@ I_opt = I_α^(1/(γ₀+1)) · I_β^(γ₀/(γ₀+1))
 
 where I_α = P_max/α (saturation), I_β = P_max/β (inhibition), and the weights are determined solely by γ₀ = cosh²(1). No fitting required. P(I_opt) within **0.2%** of the numerical optimum.
 
-**Physical meaning:** I_opt sits between saturation and inhibition, weighted 70.4% toward the inhibition scale. The gate shape γ₀ — the same constant that fixes the SCC profile and makes the design law regime-invariant — also determines the optimal point.
+**Physical meaning:** I_opt sits between saturation and inhibition, weighted 70.4% toward the inhibition scale. The gate shape γ₀ — the same constant that fixes the SCC profile and makes the design law approximately regime-invariant (k_R1 = 51.6, k_R2 = 48.8, ratio 1.06) — also determines the optimal point.
 
 ## Quick Start
 
@@ -181,7 +181,7 @@ This is a **weighted geometric mean** of the saturation irradiance (I_α = P_max
 The canonical gate shape γ₀ = cosh²(1) appears in three independent results:
 
 1. **Gate shape invariance**: Ph10 (γ fixed) vs Ph11 (γ free) show ΔR²_adj < 0.001 for 73.8% of curves
-2. **Design law regime-invariance**: NRMSE = 50.4·σ_SAI holds across R1 and R2 because γ₀ fixes the gate profile
+2. **Approximate regime-invariance of the design law**: NRMSE = 50.6·σ_SAI holds across R1 and R2 to within 6% (k_R1 = 51.6, k_R2 = 48.8; seed-to-seed SD of k 1.3, i.e. 2.6%) because γ₀ fixes the gate profile
 3. **I_opt weights**: The optimal irradiance weights w_α = 1/(γ₀+1) and w_β = γ₀/(γ₀+1) are determined by γ₀
 
 All three emerge from the same constant. The gate shape determines the profile, the error sensitivity, and the optimal point.
@@ -197,10 +197,10 @@ SAI is a single number that captures everything the scaling law misses: acclimat
 ### Design Law
 
 ```
-NRMSE(%) = 50.4 × σ_SAI
+NRMSE(%) = 50.6 × σ_SAI
 ```
 
-This linear relationship (R² ≈ 0.999) directly translates sensor precision (σ\_SAI) into prediction accuracy (NRMSE). Want 5% accuracy? You need σ\_SAI < 0.10.
+This linear relationship (R² ≈ 0.999; k averaged over 100 noise realisations, seed-to-seed SD 1.3) directly translates sensor precision (σ\_SAI) into prediction accuracy (NRMSE). Want 5% accuracy? You need σ\_SAI < 0.10.
 
 ## Environmental Bottleneck Extension
 
@@ -259,7 +259,9 @@ result = sensor.predict(alpha=0.05, Pmax=8.0, SAI=0.15)
 
 ## Forbidden Zone
 
-Within the low-S region, a **forbidden zone** (0.82 < S < 1.61) exists where almost no real phytoplankton populations are found (2/1808 curves; Poisson p ≈ 10⁻⁴⁴). This structural gap in the α–β phase space is confirmed by six independent robustness tests and may reflect a fundamental biophysical constraint on the PCC–SCC coupling.
+The **forbidden zone** is the window centred on the gate-overlap point S_c = 1 (I_α = I_β), |log₁₀ S| ≤ 0.1465, i.e. 0.714 ≤ S ≤ 1.401. The centre follows from the PCC–SCC architecture; the half-width is half the log-width of the largest empirical gap in the S < 3 band (0.82–1.61). Only 3 of 1808 curves fall in it.
+
+The primary evidence is an α–β permutation test: shuffling α and β independently (marginals preserved, coupling destroyed) raises the expected occupancy to 30.0 ± 4.8 curves (Z = −5.6, p < 10⁻⁴). Re-fitting synthetic curves from noisy RLC data does push some out of the zone (32% retained), but this accounts for only part of the depletion (retention-adjusted null 9.5 ± 3.0 vs 3 observed, P = 0.012). See `analysis/output/canonical_tables.md`.
 
 ## Repository Structure
 
@@ -270,23 +272,28 @@ midori-no-tamaki/
 ├── eos_sensor.py                ← soft sensor module (zero dependencies)
 ├── ARCHITECTURE_unified.md      ← thermal extension design document
 ├── raw_data/
-│   ├── ph10_with_SAI.csv        ← 1,808 PI curves with SAI
-│   └── ...
-├── data/
-│   ├── torzillo1994_*.csv       ← temperature response data
-│   ├── kobayashi1996_*.csv      ← pH control growth data
-│   ├── rehder2023_*.csv         ← cross-species validation
-│   └── ...
-├── figures/
-│   ├── Fig1_EOS_accuracy_by_regime.png
-│   ├── Fig_cross_species_validation.png
-│   ├── Fig_PBR_dynamics_simulation.png
-│   └── ...
-└── soba/                        ← analysis scripts ("蕎麦" = buckwheat noodles)
-    ├── fit_arrhenius_kd_kr.py
-    ├── generate_thermal_figures.py
-    ├── pbr_dynamics.py
-    └── ...
+│   ├── csv.zip                  ← piCurve fits of 1,808 PI curves (Opt_ParVal_of_piModels.csv, ph10_*.csv, ...)
+│   └── data/                    ← literature tables for the thermal/carbon extension
+│       ├── SOURCES.md
+│       ├── torzillo1994_*.csv   ← temperature response data
+│       ├── kobayashi1996_*.csv  ← pH control growth data
+│       ├── rehder2023_*.csv     ← cross-species validation
+│       └── ...
+├── analysis/                    ← canonical rerun of Part I numbers (seed-fixed)
+│   ├── ph10_fit.py              ← Ph10 model + multi-start LM fit with R² filter
+│   ├── rerun_canonical.py       ← end-to-end rerun → output/canonical.json, canonical_tables.md
+│   └── output/
+├── figures/                     ← Part I main and SI figures and their generators
+│   ├── generate_main_figures.py ← Fig 1, 2, 4
+│   ├── generate_fig3_phase_diagram.py
+│   ├── generate_si_figures.py   ← Fig S1–S3, Table S1
+│   └── Fig*.png, Table_S1_extended_stats.csv
+└── soba2/                       ← EOS thermal/carbon extension scripts
+    ├── eos_thermal_model.py         ← shared closed-form equations (Eqs. 6-12)
+    ├── fit_allakhverdiev_kd_kr.py   ← Fig 2 (Arrhenius, I_cross, b_thermal)
+    ├── generate_thermal_figures.py  ← Fig 3-4
+    ├── pbr_dynamics.py              ← Fig 5 (PBR simulation)
+    └── output/                      ← generated figures (Fig 2-5) and JSON summaries
 ```
 
 ## Data Source

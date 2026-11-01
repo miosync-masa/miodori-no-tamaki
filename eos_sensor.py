@@ -121,15 +121,21 @@ SCALING_C: float = -1.355
 
 # Empirical design law from the EOS sensing paper:
 #     NRMSE (%) = DESIGN_K * sigma_SAI
-DESIGN_K: float = 50.4
+# (mean over 100 noise realisations; seed-to-seed SD = 1.3)
+DESIGN_K: float = 50.6
 
 # Regime boundaries in gate variable S = alpha / beta
 S_BOUNDARY_R1R2: float = 10.0
 S_BOUNDARY_R2R3: float = 3.0
 
-# Forbidden zone observed in the dataset (structural depletion zone)
-FZ_LOW: float = 0.82
-FZ_HIGH: float = 1.61
+# Forbidden zone: window centred on the gate-overlap point S_c = 1
+# (I_alpha = I_beta), |log10(S / S_c)| <= FZ_HALF_WIDTH_DEX.
+# The half-width is half the log-width of the largest empirical gap in the
+# low-S band, 0.5 * log10(1.61 / 0.82) = 0.1465 dex.
+FZ_S_C: float = 1.0
+FZ_HALF_WIDTH_DEX: float = 0.1465
+FZ_LOW: float = FZ_S_C * 10.0 ** (-FZ_HALF_WIDTH_DEX)   # ≈ 0.714
+FZ_HIGH: float = FZ_S_C * 10.0 ** FZ_HALF_WIDTH_DEX     # ≈ 1.401
 
 # ---------------------------------------------------------------------------
 # Closed-form near-optimal irradiance law

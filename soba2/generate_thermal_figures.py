@@ -5,8 +5,7 @@ Midori-no-Tamaki: EOS-Thermal Extension Figure Generator
 Generates all figures from Session 1 (2025-03-21/22).
 
 Figures:
-  1. Fig_arrhenius_kd_kr.png           — Arrhenius fitting results
-  2. Fig_SAI_crossover_prediction.png  — SAI(T) fold-point & regime map
+  2. fig2: see soba2/fit_allakhverdiev_kd_kr.py (Arrhenius, I_cross, b_thermal)
   3. Fig_cross_species_validation.png  — Cross-species EOS validation
   4. Fig_pH_CO2_interaction_map.png    — pH-CO2-Temperature interactions
   5. Fig_PBR_dynamics_simulation.png   — PBR feedback dynamics
@@ -24,7 +23,10 @@ import matplotlib
 matplotlib.use('Agg')
 import sys, os
 
-OUTPUT_DIR = sys.argv[1] if len(sys.argv) > 1 else '.'
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from eos_thermal_model import carbonate_fractions, K_H, pK1  # noqa: E402
+
+OUTPUT_DIR = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 R_gas = 8.314e-3  # kJ/mol/K
@@ -34,110 +36,114 @@ R_gas = 8.314e-3  # kJ/mol/K
 # FIGURE 3: Cross-Species Validation
 # =============================================================================
 def fig_cross_species_validation():
+    """Fig. 3, built from raw_data/data (Rehder 2023; Allakhverdiev 2004 via the Fig. 2 fits)."""
+    from fit_allakhverdiev_kd_kr import DATA, read_blocks, arrhenius
+    reh = read_blocks(os.path.join(DATA, 'rehder2023_cross_species_validation.csv'))
+    summ = reh[0].set_index('parameter')
+    acute6, acute15 = reh[1], reh[2]
+    kd_df, kr_df, _, d1_df, _ = read_blocks(os.path.join(DATA, 'nishiyama_group_repair_temperature.csv'))
+    m = kr_df['kr_abs_min-1'] > 0
+    fit_kr = arrhenius(kr_df['temp_C'][m], kr_df['kr_abs_min-1'][m])
+    md = d1_df['D1_synthesis_relative_pct'] > 0
+    fit_d1 = arrhenius(d1_df['temp_C'][md], d1_df['D1_synthesis_relative_pct'][md])
+    kd = kd_df['kd_min-1'].values
+    cv_kd = 100 * kd.std(ddof=0) / kd.mean()
+
+    ratios = (acute6['Pmax_at_15C'] / acute6['Pmax_at_6C']).values
+    r_acute, r_acute_sd = ratios.mean(), ratios.std(ddof=1)
+    ea_acute = R_gas * np.log(r_acute) / (1 / 279.15 - 1 / 288.15)
+    p6_at6, p6_at15 = acute6['Pmax_at_6C'].values, acute6['Pmax_at_15C'].values
+    p15_at15, p15_at6 = acute15['Pmax_at_15C'].values, acute15['Pmax_at_6C'].values
+    r_accl = p15_at15.mean() / p6_at6.mean()
+    a6, a15 = float(summ.loc['alpha_acclimated', 'value_6C']), float(summ.loc['alpha_acclimated', 'value_15C'])
+    a_acute = float(summ.loc['alpha_acute_shift', 'value_15C'])
+
     fig, axes = plt.subplots(2, 2, figsize=(14, 11))
     fig.suptitle('Rehder 2023: EOS-Thermal Cross-Species Validation\n'
                  '(Phaeodactylum tricornutum, Diatom — 6°C vs 15°C)',
                  fontsize=14, fontweight='bold', y=0.98)
 
-    # Panel A: alpha temperature independence
+    # Panel A: alpha temperature independence (group means; SDs are not in the repository data)
     ax = axes[0, 0]
-    bars = ax.bar([0, 1, 2.5, 3.5],
-                  [1.2119, 1.2221, 1.2119, 1.2119*0.94],
-                  yerr=[0.3216, 0.1613, 0.3216, 0.3],
-                  color=['#2196F3', '#FF5722', '#2196F3', '#FF5722'],
-                  alpha=0.7, width=0.8, edgecolor='black', linewidth=1.2)
+    ax.bar([0, 1, 2.5, 3.5], [a6, a15, a6, a_acute],
+           color=['#2196F3', '#FF5722', '#2196F3', '#FF5722'],
+           alpha=0.7, width=0.8, edgecolor='black', linewidth=1.2)
     ax.set_xticks([0, 1, 2.5, 3.5])
-    ax.set_xticklabels(['6C\n(accl)', '15C\n(accl)', '6C\n(at 6C)',
-                        '6C cells\n(at 15C)'], fontsize=10)
+    ax.set_xticklabels(['6C\n(accl)', '15C\n(accl)', '6C\n(at 6C)', '6C cells\n(at 15C)'], fontsize=10)
     ax.set_ylabel('alpha (light use efficiency)', fontsize=12)
-    ax.set_title('A - alpha is TEMPERATURE INDEPENDENT',
-                 fontsize=12, fontweight='bold', color='green')
-    ax.axhline(y=1.22, color='gray', linestyle='--', alpha=0.5)
-    ax.text(0.5, 0.95, 'Ratio: 1.01 (accl)\nRatio: 0.94 (acute)',
+    ax.set_ylim(0, 1.6)
+    ax.set_title('A - alpha is temperature-insensitive', fontsize=12, fontweight='bold')
+    ax.text(0.5, 0.95, f'Ratio: {a15 / a6:.2f} (accl)\nRatio: {a_acute / a6:.2f} (acute)',
             transform=ax.transAxes, fontsize=11, va='top', ha='center',
             bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.8))
+    ax.text(0.5, 0.80, 'group means; SDs not available in repository data', transform=ax.transAxes,
+            fontsize=8, ha='center', color='grey')
 
-    # Panel B: Pmax acute vs acclimated
+    # Panel B: Pmax acute vs acclimated (individual samples)
     ax = axes[0, 1]
-    Pmax_6_at6 = [73.8, 78.0, 71.9, 72.1]
-    Pmax_6_at15 = [135.6, 135.0, 135.9, 154.3]
-    Pmax_15_at15 = [97.2, 77.1, 96.0]
-    Pmax_15_at6 = [42.1, 36.8, 37.1]
-
-    for p6, p15 in zip(Pmax_6_at6, Pmax_6_at15):
+    for p6, p15 in zip(p6_at6, p6_at15):
         ax.plot([6, 15], [p6, p15], 'o-', color='#2196F3', alpha=0.6, markersize=8)
-    for p15, p6 in zip(Pmax_15_at15, Pmax_15_at6):
+    for p15, p6 in zip(p15_at15, p15_at6):
         ax.plot([15, 6], [p15, p6], 's-', color='#FF5722', alpha=0.6, markersize=8)
-
-    ax.scatter([6], [np.mean(Pmax_6_at6)], marker='D', s=200, color='blue',
-              zorder=5, edgecolors='black', linewidths=2, label='6C accl mean')
-    ax.scatter([15], [np.mean(Pmax_15_at15)], marker='D', s=200, color='red',
-              zorder=5, edgecolors='black', linewidths=2, label='15C accl mean')
+    ax.scatter([6], [p6_at6.mean()], marker='D', s=200, color='blue', zorder=5,
+               edgecolors='black', linewidths=2, label='6C accl mean')
+    ax.scatter([15], [p15_at15.mean()], marker='D', s=200, color='red', zorder=5,
+               edgecolors='black', linewidths=2, label='15C accl mean')
     ax.set_xlabel('Measurement Temperature (C)', fontsize=12)
     ax.set_ylabel('Pmax (umol O2 / mg Chl / h)', fontsize=12)
-    ax.set_title('B - Pmax: Acute vs Acclimated Response',
-                 fontsize=12, fontweight='bold')
-    ax.legend(fontsize=9); ax.set_xlim(3, 18)
-    ax.annotate('Acute: x1.90\n(Ea=47.5 kJ/mol)', xy=(10.5, 135), fontsize=11,
-                bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.8),
-                ha='center')
-    ax.annotate('Acclimated:\nx1.22 only', xy=(10.5, 78), fontsize=10,
-                bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.8),
-                ha='center', style='italic')
+    ax.set_title('B - Pmax: Acute vs Acclimated Response', fontsize=12, fontweight='bold')
+    ax.legend(fontsize=9)
+    ax.set_xlim(3, 18)
+    ax.annotate(f'Acute: x{r_acute:.2f} ± {r_acute_sd:.2f} (n={len(ratios)})\n(Ea = {ea_acute:.1f} kJ/mol)',
+                xy=(10.5, 135), fontsize=11, ha='center',
+                bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.8))
+    ax.annotate(f'Acclimated:\nx{r_accl:.2f} only', xy=(10.5, 78), fontsize=10, ha='center', style='italic',
+                bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.8))
 
-    # Panel C: Ea comparison
+    # Panel C: Ea comparison (fits from Fig. 2; two-point estimate has no SE)
     ax = axes[1, 0]
-    species = ['Spirulina\n(our 2-pt fit)', 'Synechocystis\n(D1 synthesis)',
-               'Synechocystis\n(repair rate)', 'Phaeodactylum\n(acute Pmax)',
-               'Literature\ndefault (0.65eV)']
-    Ea_vals = [240.1, 87.1, 74.2, 47.5, 63.0]
-    colors = ['red', '#4CAF50', '#4CAF50', '#2196F3', '#FF9800']
-    bars = ax.barh(range(len(species)), Ea_vals, color=colors, alpha=0.7,
+    species = ['Synechocystis\n(D1 synthesis)', 'Synechocystis\n(repair rate)',
+               'Phaeodactylum acute Pmax\n(outside beta channel)', 'Uncalibrated\ndefault (0.65eV)']
+    Ea_vals = [fit_d1['Ea'], fit_kr['Ea'], ea_acute, 63.0]
+    Ea_err = [fit_d1['Ea_se'], fit_kr['Ea_se'], 0.0, 0.0]
+    colors = ['#4CAF50', '#4CAF50', 'white', '#FF9800']
+    bars = ax.barh(range(len(species)), Ea_vals, xerr=Ea_err, color=colors, alpha=0.7, capsize=5,
                    edgecolor='black', linewidth=1.2, height=0.6)
+    bars[2].set_hatch('//'); bars[2].set_edgecolor('#2196F3')       # P_max: not an Ea_r estimate
+    ax.axhline(1.5, color='grey', lw=0.8, ls='--')
     ax.set_yticks(range(len(species)))
     ax.set_yticklabels(species, fontsize=9)
-    ax.set_xlabel('Ea (kJ/mol)', fontsize=12)
-    ax.set_title('C - Activation Energy Across Species',
-                 fontsize=12, fontweight='bold')
-    ax.axvline(x=63, color='orange', linewidth=2.5, linestyle='--',
-              label='0.65 eV default', alpha=0.8)
-    ax.legend(fontsize=10, loc='lower right')
-    for i, v in enumerate(Ea_vals):
-        ax.text(v + 3, i, f'{v:.0f}', va='center', fontsize=11, fontweight='bold')
-    ax.annotate('Overestimate\n(2-point fit)', xy=(240, 0), xytext=(180, 1.5),
-                arrowprops=dict(arrowstyle='->', color='red', lw=2),
-                fontsize=10, color='red', fontweight='bold')
+    ax.set_xlabel('Ea (kJ/mol)   [error bars: SE of the 3-point Arrhenius fit]', fontsize=11)
+    ax.set_title('C - Ea of repair (Synechocystis) and, separately, of Pmax', fontsize=12, fontweight='bold')
+    ax.axvline(x=63, color='orange', linewidth=2.5, linestyle='--', label='0.65 eV (uncalibrated default)', alpha=0.8)
+    ax.legend(fontsize=10, loc='upper right')
+    ax.set_xlim(0, 120)
+    for i, (v, e) in enumerate(zip(Ea_vals, Ea_err)):
+        ax.text(v + e + 2, i, f'{v:.0f}' + (f' ± {e:.0f}' if e else ''), va='center', fontsize=11, fontweight='bold')
 
-    # Panel D: Summary
+    # Panel D: Summary (values computed above)
     ax = axes[1, 1]
     ax.axis('off')
-    summary = """EOS-THERMAL: CROSS-SPECIES VALIDATION
+    summary = f"""EOS-THERMAL: CROSS-SPECIES VALIDATION
 ========================================
 
-[OK] alpha is temperature-INDEPENDENT
-   Spirulina: confirmed (Torzillo)
-   Synechocystis: confirmed (Allakhverdiev)
-   Phaeodactylum: ratio = 1.01  <-- NEW
+[OK] alpha is temperature-insensitive
+   Phaeodactylum: ratio = {a15 / a6:.2f} (accl), {a_acute / a6:.2f} (acute)
 
-[OK] kd is temperature-INDEPENDENT
-   Synechocystis: CV = 0.9% (10-34C)
+[OK] kd is temperature-independent
+   Synechocystis: CV = {cv_kd:.1f}% (10-34C)
 
-[OK] kr (via Pmax) is Arrhenius-type
-   Synechocystis: Ea ~ 74-87 kJ/mol
-   Phaeodactylum: Ea ~ 48 kJ/mol (acute)
-   Literature default: 63 kJ/mol (0.65 eV)
-
-[OK] Acclimation != Acute response
-   Acute Pmax ratio:      x1.90
-   Acclimated Pmax ratio: x1.22
-   --> SAI captures the DIFFERENCE
+[OK] kr is Arrhenius-type
+   Synechocystis: Ea = {fit_kr['Ea']:.0f} (repair), {fit_d1['Ea']:.0f} (D1) kJ/mol
+   (63 kJ/mol = uncalibrated default)
 
 [OK] Denaturation threshold
-   Synechocystis: Tm ~ 42-44C (Ueno 2016)
+   Synechocystis: repair abolished at 44C (Ueno 2016)
 
-CONCLUSION:
-  b_env = min(b_thermal, b_carbon)
-  --> General across prokaryotes and eukaryotes"""
+[--] Outside the beta channel (observations)
+   Phaeodactylum acute Pmax: x{r_acute:.2f} (Ea ~ {ea_acute:.0f} kJ/mol)
+   Acclimated Pmax ratio:    x{r_accl:.2f}
+   -> thermal response of Pmax not modeled"""
     ax.text(0.02, 0.98, summary, transform=ax.transAxes, fontsize=9.8,
             fontfamily='monospace', verticalalignment='top',
             bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.9))
@@ -147,6 +153,9 @@ CONCLUSION:
     plt.savefig(path, dpi=150, bbox_inches='tight')
     plt.close()
     print(f"  Saved: {path}")
+    print(f"    alpha ratio accl {a15 / a6:.3f}, acute {a_acute / a6:.3f}; Pmax acute {r_acute:.3f} ± {r_acute_sd:.3f} "
+          f"(Ea {ea_acute:.1f}), accl {r_accl:.3f}; Ea kr {fit_kr['Ea']:.1f} ± {fit_kr['Ea_se']:.1f}, "
+          f"D1 {fit_d1['Ea']:.1f} ± {fit_d1['Ea_se']:.1f}; CV kd {cv_kd:.2f}%")
 
 
 # =============================================================================
@@ -161,11 +170,7 @@ def fig_pH_CO2_interaction():
     # Panel A: Carbonate equilibrium vs pH
     ax = axes[0, 0]
     pH_range = np.linspace(6, 13, 500)
-    H = 10**(-pH_range)
-    K1 = 4.3e-7; K2 = 4.7e-11
-    alpha0 = 1 / (1 + K1/H + K1*K2/H**2)
-    alpha1 = 1 / (H/K1 + 1 + K2/H)
-    alpha2 = 1 / (H**2/(K1*K2) + H/K2 + 1)
+    alpha0, alpha1, alpha2 = carbonate_fractions(pH_range, 25.0)   # pK1, pK2 at 25 C
 
     ax.plot(pH_range, alpha0*100, 'r-', linewidth=2.5, label='CO$_2$(aq)')
     ax.plot(pH_range, alpha1*100, 'g-', linewidth=2.5, label='HCO$_3^-$')
@@ -177,7 +182,7 @@ def fig_pH_CO2_interaction():
     ax.annotate('Start pH\n(Kobayashi)', xy=(8.95, 85), fontsize=8, ha='center')
     ax.annotate('Growth\nstop!', xy=(12.0, 70), fontsize=8, ha='center', color='red')
     ax.set_xlabel('pH', fontsize=12); ax.set_ylabel('Species fraction (%)', fontsize=12)
-    ax.set_title('A - Carbonate Equilibrium (25C)', fontsize=12, fontweight='bold')
+    ax.set_title('A - Carbonate Equilibrium (25C, I = 0.27 M)', fontsize=12, fontweight='bold')
     ax.legend(fontsize=9, loc='center right'); ax.set_xlim(6, 13); ax.set_ylim(0, 100)
 
     # Panel B: Available carbon vs pH
@@ -202,11 +207,8 @@ def fig_pH_CO2_interaction():
     ax = axes[1, 0]
     T_range = np.linspace(10, 45, 100)
     T_K = T_range + 273.15
-    KH_25 = 3.4e-2; delta_H = -2400; R = 8.314
-    KH_T = KH_25 * np.exp(-delta_H/R * (1/T_K - 1/298.15))
-    pK1 = 6.352 - 0.0152 * T_range; K1_T = 10**(-pK1)
-    KH_norm = KH_T / KH_25
-    K1_norm = K1_T / (10**(-6.352 + 0.0152*25))
+    KH_norm = K_H(T_range) / K_H(25.0)            # van 't Hoff coefficient 2400 K
+    K1_norm = 10**(-pK1(T_range)) / 10**(-pK1(25.0))
     Ea_r = 63.0
     kr_norm = np.exp((Ea_r/8.314e-3) * (1/298.15 - 1/T_K))
     kr_norm = kr_norm / kr_norm[np.argmin(np.abs(T_range-25))]
@@ -217,7 +219,7 @@ def fig_pH_CO2_interaction():
            label='kr(T) (D1 repair)')
     ax.axhline(y=1.0, color='gray', linestyle=':', alpha=0.5)
     ax.axvline(x=35, color='orange', linestyle='--', alpha=0.5)
-    ax.annotate('T_opt\nSpirulina', xy=(35, 0.5), fontsize=9, color='orange')
+    ax.annotate('growth optimum\n(Spirulina)', xy=(35, 0.5), fontsize=9, color='orange')
     ax.set_xlabel('Temperature (C)', fontsize=12)
     ax.set_ylabel('Relative to 25C', fontsize=12)
     ax.set_title('C - Temperature Effects: Competing Processes',
@@ -253,7 +255,6 @@ def fig_pH_CO2_interaction():
   Nitrogen --------------------------| b_env  |
   (control)                          | = min(    |
                                      |  b_thermal,|
-                                     |  b_therm, |
                                      |  b_carbon)|
                                      +-----+-----+
                                            |
@@ -293,7 +294,7 @@ if __name__ == '__main__':
     fig_pH_CO2_interaction()
 
     print()
-    print("NOTE: Fig 1-2 (Arrhenius) are in soba/fit_arrhenius_kd_kr.py")
-    print("NOTE: Fig 5 (PBR dynamics) is in soba/pbr_dynamics.py")
+    print("NOTE: Fig 2 (Arrhenius) is in soba2/fit_allakhverdiev_kd_kr.py")
+    print("NOTE: Fig 5 (PBR dynamics) is in soba2/pbr_dynamics.py")
     print()
     print("All done!")

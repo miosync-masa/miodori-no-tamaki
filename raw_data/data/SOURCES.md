@@ -7,7 +7,7 @@ Data must be digitized from published figures.
 ### P1-A: Torzillo & Vonshak (1994) ⭐ ✅ ACQUIRED (purchased from Elsevier CCC) ⭐ MOST CRITICAL
 - **Title**: Effect of light and temperature on the photosynthetic activity
   of the cyanobacterium Spirulina platensis
-- **Journal**: Biomass and Bioenergy, 6(6), 457-462
+- **Journal**: Biomass and Bioenergy, 6(5), 399-403
 - **DOI**: 10.1016/0961-9534(94)00076-6
 - **Data**: PI curves at multiple temperatures (20-40°C range)
 - **Method**: O₂ electrode

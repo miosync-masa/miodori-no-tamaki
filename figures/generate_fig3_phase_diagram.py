@@ -2,7 +2,7 @@
 """
 generate_fig3_phase_diagram.py
 ==============================
-Fig. 3 of "A sensing-ready equation of state for photoinhibition":
+Fig. 2 of "An equation of state for photoinhibition: a forbidden zone, a diagnosable stress index, and environmental bottleneck channels":
   (A) histogram of log10 S by regime, with the forbidden zone (FZ) window
       centred on the gate-overlap point S_c = 1
   (B) EOS validity summary table

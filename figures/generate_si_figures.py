@@ -3,13 +3,13 @@
 generate_si_figures.py
 ======================
 Supplementary Information figure & table generation for:
-"A sensing-ready equation of state for photoinhibition"
+"An equation of state for photoinhibition: a forbidden zone, a diagnosable stress index, and environmental bottleneck channels"
 
 Generates:
   - Fig_S1_alpha_beta_scatter.png   : Full α–β parameter landscape
   - Fig_S2_FZ_artifact_tests.png    : Forbidden zone 6-panel artifact tests
   - Fig_S3_SAI_recovery.png         : In silico SAI recovery simulation
-  - Table_S1_extended_stats.csv     : Extended EOS statistics
+  - Table_S2_extended_stats.csv     : Extended EOS statistics (SI Table S2)
 
 Model and RLC fitting protocol are imported from analysis/ph10_fit.py
 (Main.tex Eq. 1; Methods: multi-start Levenberg–Marquardt + R² ≥ 0.95).
@@ -523,7 +523,7 @@ def compute_eos_accuracy(ph10, sigma_sai=SIGMA_SAI_EOS3):
     return df[df['regime'] != 'R3'].reset_index(drop=True)
 
 
-def table_s1_extended(ph10, outpath='Table_S1_extended_stats.csv'):
+def table_s2_extended(ph10, outpath='Table_S2_extended_stats.csv'):
     """Generate extended EOS stats table."""
     print("  Computing EOS accuracy for all curves (this may take a moment)...")
     eos_df = compute_eos_accuracy(ph10)
@@ -588,9 +588,9 @@ if __name__ == '__main__':
     print("  (800 curves, 3% noise, 12-step RLC, multi-start LM, R² ≥ 0.95)")
     res = fig_s3_sai_recovery(ph10)
 
-    # Table S1
-    print("\n[5/5] Generating Table S1: Extended EOS statistics...")
-    table_s1_extended(ph10)
+    # Table S2
+    print("\n[5/5] Generating Table S2: Extended EOS statistics...")
+    table_s2_extended(ph10)
 
     print("\n" + "=" * 60)
     print("All supplementary materials generated successfully!")

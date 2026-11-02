@@ -284,34 +284,34 @@ midori-no-tamaki/
 │   ├── rerun_canonical.py       ← end-to-end rerun → output/canonical.json, canonical_tables.md
 │   └── output/
 ├── figures/                     ← Part I main and SI figures and their generators
-│   ├── generate_main_figures.py ← Fig 1, 2, 4
-│   ├── generate_fig3_phase_diagram.py
-│   ├── generate_si_figures.py   ← Fig S1–S3, Table S1
-│   └── Fig*.png, Table_S1_extended_stats.csv
+│   ├── generate_main_figures.py ← Fig 3, 4, 5 (files Fig1_, Fig4_, Fig2_*.png)
+│   ├── generate_fig3_phase_diagram.py ← Fig 2 (file Fig3_phase_diagram.png)
+│   ├── generate_fig9_workflow.py ← Fig 9
+│   ├── generate_si_figures.py   ← Fig S1–S3, Table S2
+│   └── Fig*.png, Table_S2_extended_stats.csv
 └── soba2/                       ← EOS thermal/carbon extension scripts
     ├── eos_thermal_model.py         ← shared closed-form equations (Eqs. 6-12)
-    ├── fit_allakhverdiev_kd_kr.py   ← Fig 2 (Arrhenius, I_cross, b_thermal)
-    ├── generate_thermal_figures.py  ← Fig 3-4
-    ├── pbr_dynamics.py              ← Fig 5 (PBR simulation)
-    └── output/                      ← generated figures (Fig 2-5) and JSON summaries
+    ├── fit_allakhverdiev_kd_kr.py   ← Fig 6 (Arrhenius, I_cross, b_thermal)
+    ├── generate_thermal_figures.py  ← Fig 7 (pH–CO2) and Fig S4 (cross-species)
+    ├── pbr_dynamics.py              ← Fig 8 (PBR simulation)
+    └── output/                      ← generated figures (Fig 6–8, S4) and JSON summaries
 ```
 
 ## Data Source
 
 All analyses are based on **1,808 PI curves** from the piCurve compilation:
 
-> Amirian, M.A. et al. (2025). Parameterization of photoinhibition for phytoplankton. *Communications Earth & Environment* 6:707.
-> Dataset: Amirian, M.A. & Irwin, A.J. (2025). piCurve R package. Zenodo. https://doi.org/10.5281/zenodo.16748102
+> Amirian, M.M., Finkel, Z.V., Devred, E. & Irwin, A.J. (2025). Parameterization of photoinhibition for phytoplankton. *Communications Earth & Environment* 6:707.
+> Dataset: Amirian, M.M., Finkel, Z.V., Devred, E. & Irwin, A.J. (2025). Parameterization of Photoinhibition for Phytoplankton [Data set]. Zenodo. https://doi.org/10.5281/zenodo.16748102
 
 ## Citation
 
 ```bibtex
 @article{iizumi2026eos,
-  title   = {A sensing-ready equation of state for photoinhibition:
-             predicting {PI} curves from $\alpha$, $P_{\max}$,
-             and a stress adaptation index},
+  title   = {An equation of state for photoinhibition: a forbidden zone,
+             a diagnosable stress index, and environmental bottleneck channels},
   author  = {Iizumi, Masamichi},
-  journal = {},
+  journal = {Photosynthesis Research},
   year    = {2026},
   note    = {Submitted}
 }

@@ -3,7 +3,8 @@
 rerun_canonical.py
 ==================
 End-to-end re-run (seed = 42) of every quantitative result in
-"A sensing-ready equation of state for photoinhibition" (PI_Curve Main + SI),
+"An equation of state for photoinhibition: a forbidden zone, a diagnosable stress index, and environmental bottleneck channels"
+(Main + SI, Part I numbers),
 using the manuscript model (Main.tex Eq. 1) and the RLC fitting protocol of
 Methods l.319-323 (multi-start Levenberg-Marquardt + R^2 >= 0.95 filter),
 implemented in analysis/ph10_fit.py.

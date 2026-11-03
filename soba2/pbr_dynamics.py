@@ -155,7 +155,7 @@ base_params = {
     'Pmax_opt': 2.0,         # mM C / g biomass / h
     'Ik': 150.0,             # µmol/m²/s (light saturation, = Pmax / alpha)
     'S_ref': S_REF,          # alpha / beta_ref
-    'k_ext': 0.02,           # L/g/cm (extinction coefficient)
+    'k_ext': 0.5,            # L/g/cm (extinction coefficient; order of measured Spirulina absorption)
     'path_length': 4.0,      # cm (tube diameter)
     'thermal': dict(THERMAL_DEFAULT),
     'Km_mM': KM_EFF_MM,

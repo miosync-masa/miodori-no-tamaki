@@ -1,86 +1,86 @@
 {
   "s1": {
-    "max_biomass_gL": 2.3769385485773658,
-    "final_biomass_gL": 1.942885429881675,
-    "final_pH": 13.018619661393897,
-    "max_pH": 13.018887707146684,
-    "t_pH_above_12_h": 116.30000000000001,
-    "final_DIC_mM": 28.30480745169415,
-    "min_b_carbon": 0.044152749753738646,
+    "max_biomass_gL": 2.5038042622921766,
+    "final_biomass_gL": 2.2374354989303806,
+    "final_pH": 13.107739537361269,
+    "max_pH": 13.10916711717753,
+    "t_pH_above_12_h": 149.5,
+    "final_DIC_mM": 11.963989515786832,
+    "min_b_carbon": 0.015265654979861475,
     "b_thermal": 0.4346023981401,
-    "min_b_env": 0.044152749753738646,
-    "max_beta_ratio": 22.64864602040612,
-    "carbon_dominant_fraction": 0.6044651782739087,
+    "min_b_env": 0.015265654979861475,
+    "max_beta_ratio": 65.5065243724691,
+    "carbon_dominant_fraction": 0.4838387204265245,
     "switch_times_h": [
-      118.7
+      154.9
     ],
-    "final_mu_per_day": -0.038326148541531616,
+    "final_mu_per_day": -0.039523111753468794,
     "pH_direction_changes": 1,
     "step_check_max_abs_diff": {
-      "biomass_gL": 3.536553522032193e-06,
-      "pH": 1.808097362854255e-05
+      "biomass_gL": 8.320220068469553e-07,
+      "pH": 8.193737858874783e-06
     }
   },
   "s2": {
-    "max_biomass_gL": 44.68843207903593,
-    "final_biomass_gL": 44.68843207903593,
-    "final_pH": 9.382691850618485,
-    "max_pH": 9.382691850618485,
+    "max_biomass_gL": 3.57120452167069,
+    "final_biomass_gL": 3.57120452167069,
+    "final_pH": 9.014846528781709,
+    "max_pH": 9.017108148084544,
     "t_pH_above_12_h": null,
-    "final_DIC_mM": 163.95432358277492,
-    "min_b_carbon": 0.9961018738273857,
+    "final_DIC_mM": 180.74312872498479,
+    "min_b_carbon": 0.9969006118616156,
     "b_thermal": 0.4346023981401,
     "min_b_env": 0.4346023981401,
     "max_beta_ratio": 2.3009537091363135,
     "carbon_dominant_fraction": 0.0,
     "switch_times_h": [],
-    "final_mu_per_day": 0.21059809234299884,
-    "pH_direction_changes": 0,
+    "final_mu_per_day": 0.06988026508305664,
+    "pH_direction_changes": 1,
     "step_check_max_abs_diff": {
-      "biomass_gL": 3.220047361196521e-05,
-      "pH": 2.9916660633233505e-05
+      "biomass_gL": 8.143982155317531e-07,
+      "pH": 2.0999200872395818e-05
     }
   },
   "s3": {
-    "max_biomass_gL": 25.587254061115974,
-    "final_biomass_gL": 25.587254061115974,
-    "final_pH": 9.380046438836846,
-    "max_pH": 9.380046438836846,
+    "max_biomass_gL": 2.4331282323988335,
+    "final_biomass_gL": 2.4331282323988335,
+    "final_pH": 9.015894889013929,
+    "max_pH": 9.018398150975097,
     "t_pH_above_12_h": null,
-    "final_DIC_mM": 159.4712998886946,
-    "min_b_carbon": 0.9958111110094401,
+    "final_DIC_mM": 177.42281155849673,
+    "min_b_carbon": 0.9967685235207158,
     "b_thermal": 0.9069639221352018,
     "min_b_env": 0.9069639221352018,
     "max_beta_ratio": 1.1025796898798024,
     "carbon_dominant_fraction": 0.0,
     "switch_times_h": [],
-    "final_mu_per_day": 0.2592688000198823,
-    "pH_direction_changes": 0,
+    "final_mu_per_day": 0.05569159486891111,
+    "pH_direction_changes": 1,
     "step_check_max_abs_diff": {
-      "biomass_gL": 2.391542304280847e-05,
-      "pH": 1.352290771272635e-05
+      "biomass_gL": 5.695703129138252e-07,
+      "pH": 9.2143220857821e-06
     }
   },
   "s4": {
-    "max_biomass_gL": 2.1355497728492923,
-    "final_biomass_gL": 1.7387029614012115,
-    "final_pH": 12.9071939542807,
-    "max_pH": 12.907270892774374,
-    "t_pH_above_12_h": 107.30000000000001,
-    "final_DIC_mM": 44.543793168607195,
-    "min_b_carbon": 0.08600743227178924,
+    "max_biomass_gL": 2.5476012515081647,
+    "final_biomass_gL": 2.0461277145962007,
+    "final_pH": 13.074859753104342,
+    "max_pH": 13.081991867604332,
+    "t_pH_above_12_h": 113.5,
+    "final_DIC_mM": 18.38592175956358,
+    "min_b_carbon": 0.02351325627884832,
     "b_thermal": 0.4346023981401,
-    "min_b_env": 0.08600743227178924,
-    "max_beta_ratio": 11.626902159338197,
-    "carbon_dominant_fraction": 0.6351216261246251,
+    "min_b_env": 0.02351325627884832,
+    "max_beta_ratio": 42.52920089590331,
+    "carbon_dominant_fraction": 0.6117960679773409,
     "switch_times_h": [
-      109.5
+      116.5
     ],
-    "final_mu_per_day": -0.03821873100768243,
+    "final_mu_per_day": -0.04091121384666189,
     "pH_direction_changes": 1,
     "step_check_max_abs_diff": {
-      "biomass_gL": 5.054488984468364e-06,
-      "pH": 1.9772820611052566e-05
+      "biomass_gL": 1.8191666879552315e-06,
+      "pH": 1.5022479953330503e-05
     }
   }
 }

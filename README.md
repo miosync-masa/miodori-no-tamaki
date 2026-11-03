@@ -282,6 +282,8 @@ midori-no-tamaki/
 ├── analysis/                    ← canonical rerun of Part I numbers (seed-fixed)
 │   ├── ph10_fit.py              ← Ph10 model + multi-start LM fit with R² filter
 │   ├── rerun_canonical.py       ← end-to-end rerun → output/canonical.json, canonical_tables.md
+│   ├── drift_cost.py            ← NRMSE cost of a common SAI drift (re-diagnosis interval, Section 6.1)
+│   ├── raw_check_torzillo1994.py ← EOS2 vs raw PI curves of Torzillo & Vonshak (1994) Fig. 4 (SI S4.3)
 │   └── output/
 ├── figures/                     ← Part I main and SI figures and their generators
 │   ├── generate_fig1_framework.py ← Fig 1

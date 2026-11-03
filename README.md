@@ -284,6 +284,7 @@ midori-no-tamaki/
 │   ├── rerun_canonical.py       ← end-to-end rerun → output/canonical.json, canonical_tables.md
 │   └── output/
 ├── figures/                     ← Part I main and SI figures and their generators
+│   ├── generate_fig1_framework.py ← Fig 1
 │   ├── generate_main_figures.py ← Fig 3, 4, 5
 │   ├── generate_fig2_phase_diagram.py ← Fig 2
 │   ├── generate_fig9_workflow.py ← Fig 9

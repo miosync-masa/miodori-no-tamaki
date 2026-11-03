@@ -2,7 +2,7 @@
 """
 fit_allakhverdiev_kd_kr.py
 ==========================
-Fig. 2 of eos_thermal/main.tex: Arrhenius analysis of D1 damage and repair
+Fig. 6 of the manuscript: Arrhenius analysis of D1 damage and repair
 in Synechocystis sp. PCC 6803 (Allakhverdiev & Murata 2004; Ueno et al. 2016),
 with the Phaeodactylum acute P_max shift (Rehder et al. 2023) for comparison.
 
@@ -167,7 +167,7 @@ def main():
 
     # ══════════════════ FIGURE ══════════════════
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))
-    fig.suptitle('Fig. 2 — Arrhenius analysis of D1 damage and repair (Synechocystis sp. PCC 6803)',
+    fig.suptitle('Arrhenius analysis of D1 damage and repair (Synechocystis sp. PCC 6803)',
                  fontsize=14, fontweight='bold')
     C_KD, C_KR, C_D1, C_RE = '#D85A30', '#1D9E75', '#534AB7', '#1E88E5'
 
@@ -254,7 +254,7 @@ def main():
     ax.grid(alpha=0.3)
 
     fig.tight_layout()
-    path = os.path.join(OUT, 'fig2_arrhenius_kd_kr.png')
+    path = os.path.join(OUT, 'Fig6_arrhenius_kd_kr.png')
     fig.savefig(path, dpi=200, bbox_inches='tight', facecolor='white')
     print(f'saved {path}')
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-generate_fig3_phase_diagram.py
+generate_fig2_phase_diagram.py
 ==============================
 Fig. 2 of "An equation of state for photoinhibition: a forbidden zone, a diagnosable stress index, and environmental bottleneck channels":
   (A) histogram of log10 S by regime, with the forbidden zone (FZ) window
@@ -11,7 +11,7 @@ All numbers are read from analysis/output/canonical.json, so run
 analysis/rerun_canonical.py first.
 
 Usage (from the repository root):
-  python figures/generate_fig3_phase_diagram.py
+  python figures/generate_fig2_phase_diagram.py
 
 Author: Masamichi Iizumi / Miosync, Inc.
 License: MIT
@@ -104,8 +104,8 @@ def main():
     ax_t.text(0.0, 0.0, 'Medians, offset-free P$_{gross}$; EOS3 at σ$_{SAI}$ = 0.15.',
               fontsize=8.5, color='grey')
 
-    fig.suptitle('Fig. 3 — Photosynthetic Phase Diagram and EOS Validity', fontsize=14, fontweight='bold')
-    out = os.path.join(HERE, 'Fig3_phase_diagram.png')
+    fig.suptitle('Photosynthetic Phase Diagram and EOS Validity', fontsize=14, fontweight='bold')
+    out = os.path.join(HERE, 'Fig2_phase_diagram.png')
     fig.savefig(out, dpi=300, bbox_inches='tight', facecolor='white')
     plt.close(fig)
     print(f'✓ {out} saved (FZ {FZ_LOW:.3f}–{FZ_HIGH:.3f}: {n_fz} curves)')

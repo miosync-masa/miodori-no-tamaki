@@ -6,9 +6,9 @@ Supplementary Information figure & table generation for:
 "An equation of state for photoinhibition: a forbidden zone, a diagnosable stress index, and environmental bottleneck channels"
 
 Generates:
-  - Fig_S1_alpha_beta_scatter.png   : Full α–β parameter landscape
-  - Fig_S2_FZ_artifact_tests.png    : Forbidden zone 6-panel artifact tests
-  - Fig_S3_SAI_recovery.png         : In silico SAI recovery simulation
+  - FigS1_alpha_beta_scatter.png   : Full α–β parameter landscape
+  - FigS2_FZ_artifact_tests.png    : Forbidden zone 6-panel artifact tests
+  - FigS3_SAI_recovery.png         : In silico SAI recovery simulation
   - Table_S2_extended_stats.csv     : Extended EOS statistics (SI Table S2)
 
 Model and RLC fitting protocol are imported from analysis/ph10_fit.py
@@ -149,7 +149,7 @@ def mad(x):
 # ══════════════════════════════════════════════════════════
 # FIG S1: FULL α–β SCATTER PLOT
 # ══════════════════════════════════════════════════════════
-def fig_s1_scatter(ph10, outpath='Fig_S1_alpha_beta_scatter.png'):
+def fig_s1_scatter(ph10, outpath='FigS1_alpha_beta_scatter.png'):
     """Full log10(α)–log10(β) scatter with regime coloring."""
     fig, ax = plt.subplots(figsize=(8, 6))
 
@@ -193,7 +193,7 @@ def fig_s1_scatter(ph10, outpath='Fig_S1_alpha_beta_scatter.png'):
 # ══════════════════════════════════════════════════════════
 # FIG S2: FORBIDDEN ZONE TESTS (6-panel)
 # ══════════════════════════════════════════════════════════
-def fig_s2_fz_tests(ph10, ph11, outpath='Fig_S2_FZ_artifact_tests.png'):
+def fig_s2_fz_tests(ph10, ph11, outpath='FigS2_FZ_artifact_tests.png'):
     """Six-panel forbidden zone tests (RNG order matches analysis/rerun_canonical.py)."""
     fig = plt.figure(figsize=(14, 9))
     gs = gridspec.GridSpec(2, 3, hspace=0.35, wspace=0.30)
@@ -362,7 +362,7 @@ def fig_s2_fz_tests(ph10, ph11, outpath='Fig_S2_FZ_artifact_tests.png'):
 # ══════════════════════════════════════════════════════════
 # FIG S3: SAI RECOVERY SIMULATION
 # ══════════════════════════════════════════════════════════
-def fig_s3_sai_recovery(ph10, outpath='Fig_S3_SAI_recovery.png'):
+def fig_s3_sai_recovery(ph10, outpath='FigS3_SAI_recovery.png'):
     """In silico SAI recovery from noisy RLC (multi-start LM, R² ≥ 0.95)."""
 
     N_sim = 800

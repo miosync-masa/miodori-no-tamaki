@@ -284,11 +284,11 @@ midori-no-tamaki/
 │   ├── rerun_canonical.py       ← end-to-end rerun → output/canonical.json, canonical_tables.md
 │   └── output/
 ├── figures/                     ← Part I main and SI figures and their generators
-│   ├── generate_main_figures.py ← Fig 3, 4, 5 (files Fig1_, Fig4_, Fig2_*.png)
-│   ├── generate_fig3_phase_diagram.py ← Fig 2 (file Fig3_phase_diagram.png)
+│   ├── generate_main_figures.py ← Fig 3, 4, 5
+│   ├── generate_fig2_phase_diagram.py ← Fig 2
 │   ├── generate_fig9_workflow.py ← Fig 9
 │   ├── generate_si_figures.py   ← Fig S1–S3, Table S2
-│   └── Fig*.png, Table_S2_extended_stats.csv
+│   └── Fig*.png, Table_S2_extended_stats.csv  (file names follow manuscript numbering)
 └── soba2/                       ← EOS thermal/carbon extension scripts
     ├── eos_thermal_model.py         ← shared closed-form equations (Eqs. 6-12)
     ├── fit_allakhverdiev_kd_kr.py   ← Fig 6 (Arrhenius, I_cross, b_thermal)

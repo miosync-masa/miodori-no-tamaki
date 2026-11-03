@@ -102,7 +102,7 @@ for i in range(N):
     r2_eos2_gross[i] = 1 - np.sum((P_eos2 - P_true)**2) / max(ss_tot, 1e-10)
     r2_eos3_gross[i] = 1 - np.sum((P_eos3 - P_true)**2) / max(ss_tot, 1e-10)
 
-# σ sweep for Fig 2: k depends on the noise realisation (seed-to-seed SD ≈ 1.3),
+# σ sweep for Fig 5: k depends on the noise realisation (seed-to-seed SD ≈ 1.3),
 # so median NRMSE is averaged over K_SEEDS realisations (default_rng(0..K_SEEDS-1)),
 # matching analysis/rerun_canonical.py.
 K_SEEDS = 100
@@ -181,11 +181,11 @@ legend_elements = [
     Patch(facecolor=C_2var, alpha=0.7, label='2-var EOS: (α, Pmax) with β = β_pred(α)'),
     Patch(facecolor=C_3var, alpha=0.7, label='3-var EOS: (α, Pmax, SAI) assuming σ_SAI = 0.15')]
 ax1.legend(handles=legend_elements, loc='lower left', fontsize=9.5, framealpha=0.9)
-ax1.set_title('Fig. 1 — Equation of State: Prediction Accuracy by Regime',
+ax1.set_title('Equation of State: Prediction Accuracy by Regime',
               fontsize=13, fontweight='bold', pad=15)
 fig1.tight_layout()
-fig1.savefig('figures/Fig1_EOS_accuracy_by_regime.png', dpi=300, bbox_inches='tight', facecolor='white')
-print("✓ Fig 1 saved")
+fig1.savefig('figures/Fig3_accuracy_by_regime.png', dpi=300, bbox_inches='tight', facecolor='white')
+print("✓ Fig 3 saved")
 
 # ============================================================
 # FIG 2: Sensor design spec
@@ -232,7 +232,7 @@ ax2.set_xlabel('σ_SAI  (measurement uncertainty of Stress Adaptation Index)', f
 ax2.set_ylabel('Median NRMSE  (%)', fontsize=11)
 ax2.set_xlim(-0.01, 0.33); ax2.set_ylim(-0.5, 18)
 ax2.legend(fontsize=9, loc='upper left', framealpha=0.9)
-ax2.set_title('Fig. 2 — Sensor Design Specification: NRMSE = k · σ_SAI  (approximately regime-invariant)',
+ax2.set_title('Sensor Design Specification: NRMSE = k · σ_SAI  (approximately regime-invariant)',
               fontsize=13, fontweight='bold', pad=15)
 ax2.text(0.97, 0.03,
          f'Origin-constrained fit:\nk = {k0:.1f}  (R² = {r2_fit:.4f}; mean of {K_SEEDS} noise realisations,\n'
@@ -242,8 +242,8 @@ ax2.text(0.97, 0.03,
          transform=ax2.transAxes, fontsize=10, va='bottom', ha='right',
          bbox=dict(boxstyle='round,pad=0.5', facecolor='#E3F2FD', edgecolor='#1565C0', alpha=0.9))
 fig2.tight_layout()
-fig2.savefig('figures/Fig2_sensor_design_spec.png', dpi=300, bbox_inches='tight', facecolor='white')
-print(f"✓ Fig 2 saved (k={k0:.1f}, R²={r2_fit:.6f})")
+fig2.savefig('figures/Fig5_design_law.png', dpi=300, bbox_inches='tight', facecolor='white')
+print(f"✓ Fig 5 saved (k={k0:.1f}, R²={r2_fit:.6f})")
 
 # ============================================================
 # FIG 4: Representative curve overlays — FIXED line styles
@@ -306,7 +306,7 @@ for ax, (idx, title, panel) in zip(axes.flat, picks):
     ax.set_xlim(0, 2500)
     ax.set_ylim(bottom=0)
 
-fig4.suptitle('Fig. 4 — Representative PI curves: Reference vs EOS2 vs EOS3',
+fig4.suptitle('Representative PI curves: Reference vs EOS2 vs EOS3',
               fontsize=14, fontweight='bold', y=1.01)
 fig4.tight_layout()
 fig4.savefig('figures/Fig4_curve_overlays.png', dpi=300, bbox_inches='tight', facecolor='white')

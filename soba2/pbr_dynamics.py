@@ -2,7 +2,7 @@
 """
 pbr_dynamics.py
 ===============
-Fig. 5 of eos_thermal/main.tex: Spirulina PBR dynamic simulation illustrating
+Fig. 8 of the manuscript: Spirulina PBR dynamic simulation illustrating
 the feedback loop (photosynthetic CO2 uptake -> DIC decline -> pH rise -> carbon
 capacity), with the state-estimation layer evaluated along the trajectory.
 
@@ -289,7 +289,7 @@ def main():
     for ax in axes.flat:
         ax.set_xlim(0, 300)
     plt.tight_layout(rect=[0, 0, 1, 0.96])
-    path = os.path.join(OUT, 'fig5_PBR_dynamics.png')
+    path = os.path.join(OUT, 'Fig8_PBR_dynamics.png')
     plt.savefig(path, dpi=150, bbox_inches='tight')
     print(f'saved {path}')
 

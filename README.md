@@ -311,10 +311,11 @@ All analyses are based on **1,808 PI curves** from the piCurve compilation:
 
 ```bibtex
 @article{iizumi2026eos,
-  title   = {An equation of state for photoinhibition: a forbidden zone,
-             a diagnosable stress index, and environmental bottleneck channels},
+  title   = {Predicting photoinhibition in microalgal and cyanobacterial cultures
+             from two photosynthesis–irradiance parameters and a stress index
+             linked to temperature, pH, and inorganic carbon},
   author  = {Iizumi, Masamichi},
-  journal = {Photosynthesis Research},
+  journal = {Algal Research},
   year    = {2026},
   note    = {Submitted}
 }
